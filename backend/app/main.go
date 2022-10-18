@@ -1,5 +1,7 @@
 package app
 
-func main() {
+import "backend/app/router"
 
+func main() {
+	router.Init()
 }
