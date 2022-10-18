@@ -23,8 +23,12 @@ func (p *Contribution) CreateContribution() (db *gorm.DB) {
 	return db.Create(&p)
 }
 
-func (p *Contribution) DeleteContribution(workspaceId string) (db *gorm.DB) {
-	return db.Where("workspaceId = ?", workspaceId).Delete(&p)
+func (p *Contribution) DeleteContribution(contributionId string) (db *gorm.DB) {
+	return db.Where("Id = ?", contributionId).Delete(&p)
+}
+
+func (p *Contribution) EditContribution(contributionId string, points int, message string) (db *gorm.DB) {
+	return db.Where("Id = ?", contributionId).Updates(Contribution{Message: message, Points: points})
 }
 
 func (u *Contributions) FetchAllContributionInWorkspace(workspaceId string) (db *gorm.DB) {
@@ -39,6 +43,6 @@ func (u *Contributions) FetchAllContributionReceived(workspaceId string, to stri
 	return db.Where(Contribution{WorkspaceId: workspaceId, To: to}).Find(&u)
 }
 
-func (p *Contribution) SendReaction(contributionId string) (db *gorm.DB) {
-	return db.Where()
+func (p *Contribution) SendReaction(contributionId string, reactions int) (db *gorm.DB) {
+	return db.Where("Id = ?", contributionId).Update("reaction", reactions)
 }

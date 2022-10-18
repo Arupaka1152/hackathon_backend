@@ -35,6 +35,10 @@ func (p *User) GrantRoleToUser(userId string, role string) (db *gorm.DB) {
 	return db.Where("Id = ?", userId).Update("role", role)
 }
 
-func (p *User) ChangeUserAttributes(userId string, userName string, avatarUrl string) (db *gorm.DB) {
-	return db.Where("Id = ?", userId).Updates(User{Name: userName, AvatarUrl: avatarUrl})
+func (p *User) ChangeUserName(userId string, userName string) (db *gorm.DB) {
+	return db.Where("Id = ?", userId).Update("name", userName)
+}
+
+func (p *User) ChangeUserAvatarUrl(userId string, avatarUrl string) (db *gorm.DB) {
+	return db.Where("Id = ?", userId).Update("avatarUrl", avatarUrl)
 }
