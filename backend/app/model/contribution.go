@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Contribution struct {
 	Id          string    `json:"id" gorm:"primaryKey"`
@@ -12,4 +15,30 @@ type Contribution struct {
 	Reaction    int       `json:"reaction"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type Contributions []Contribution
+
+func (p *Contribution) CreateContribution() (db *gorm.DB) {
+	return db.Create(&p)
+}
+
+func (p *Contribution) DeleteContribution(workspaceId string) (db *gorm.DB) {
+	return db.Where("workspaceId = ?", workspaceId).Delete(&p)
+}
+
+func (u *Contributions) FetchAllContributionInWorkspace(workspaceId string) (db *gorm.DB) {
+	return db.Where("workspaceId = ?", workspaceId).Find(&u)
+}
+
+func (u *Contributions) FetchAllContributionSent(workspaceId string, from string) (db *gorm.DB) {
+	return db.Where(Contribution{WorkspaceId: workspaceId, From: from}).Find(&u)
+}
+
+func (u *Contributions) FetchAllContributionReceived(workspaceId string, to string) (db *gorm.DB) {
+	return db.Where(Contribution{WorkspaceId: workspaceId, To: to}).Find(&u)
+}
+
+func (p *Contribution) SendReaction(contributionId string) (db *gorm.DB) {
+	return db.Where()
 }
