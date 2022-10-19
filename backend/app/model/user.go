@@ -18,23 +18,3 @@ type User struct {
 }
 
 type Users []User
-
-func (p *User) CreateUser() (db *gorm.DB) {
-	return db.Create(&p)
-}
-
-func (u *Users) FetchAllUsersInWorkspace(workspaceId string) (db *gorm.DB) {
-	return db.Where("workspaceId = ?", workspaceId).Find(&u)
-}
-
-func (p *User) DeleteUserFromWorkspace(userId string) (db *gorm.DB) {
-	return db.Where("id = ?", userId).Delete(&p)
-}
-
-func (p *User) GrantRoleToUser(userId string, role string) (db *gorm.DB) {
-	return db.Where("id = ?", userId).Update("role", role)
-}
-
-func (p *User) ChangeUserAttributes(userId string, userName string, avatarUrl string) (db *gorm.DB) {
-	return db.Where("id = ?", userId).Updates(User{Name: userName, AvatarUrl: avatarUrl})
-}

@@ -14,18 +14,4 @@ type Workspace struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
-func (p *Workspace) CreateWorkspace() (db *gorm.DB) {
-	return db.Create(&p)
-}
-
-func (p *Workspace) ChangeWorkspaceAttributes(workspaceId string, workspaceName string, avatarUrl string) (db *gorm.DB) {
-	return db.Where("id = ?", workspaceId).Updates(Workspace{Name: workspaceName, AvatarUrl: avatarUrl})
-}
-
-func (p *Workspace) DeleteWorkspace(workspaceId string) (db *gorm.DB) {
-	return db.Where("id = ?", workspaceId).Delete(&p)
-}
-
-func (p *Workspace) FetchAllWorkspace(accountId string) (db *gorm.DB) {
-
-}
+type Workspaces []Workspace

@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Contribution struct {
@@ -19,31 +17,3 @@ type Contribution struct {
 }
 
 type Contributions []Contribution
-
-func (p *Contribution) CreateContribution() (db *gorm.DB) {
-	return db.Create(&p)
-}
-
-func (p *Contribution) DeleteContribution(contributionId string) (db *gorm.DB) {
-	return db.Where("id = ?", contributionId).Delete(&p)
-}
-
-func (p *Contribution) EditContribution(contributionId string, points int, message string) (db *gorm.DB) {
-	return db.Where("id = ?", contributionId).Updates(Contribution{Message: message, Points: points})
-}
-
-func (u *Contributions) FetchAllContributionInWorkspace(workspaceId string) (db *gorm.DB) {
-	return db.Where("workspaceId = ?", workspaceId).Find(&u)
-}
-
-func (u *Contributions) FetchAllContributionSent(workspaceId string, from string) (db *gorm.DB) {
-	return db.Where(Contribution{WorkspaceId: workspaceId, From: from}).Find(&u)
-}
-
-func (u *Contributions) FetchAllContributionReceived(workspaceId string, to string) (db *gorm.DB) {
-	return db.Where(Contribution{WorkspaceId: workspaceId, To: to}).Find(&u)
-}
-
-func (p *Contribution) SendReaction(contributionId string, reactions int) (db *gorm.DB) {
-	return db.Where("id = ?", contributionId).Update("reaction", reactions)
-}
