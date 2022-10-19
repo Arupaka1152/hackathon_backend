@@ -1,6 +1,7 @@
 package router
 
 import (
+	"backend/app/controller"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
@@ -18,27 +19,27 @@ func Init() {
 			AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		}))
 
-	api := e.Group("/api")
+	r := e.Group("/restricted")
 
-	api.GET("/workspace/all", controller.FetchAllWorkSpace)
-	api.POST("/workspace/create", controller.CreateWorkspace)
-	api.DELETE("/workspace/delete", controller.DeleteWorkspace)
-	api.POST("/workspace/invite", controller.CreateUser)
-	api.DELETE("/workspace/remove", controller.DeleteUserFromWorkspace)
-	api.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
-	api.POST("/workspace/role", contoller.GrantRoleToUser)
+	r.GET("/workspace/all", controller.FetchAllWorkSpace)
+	r.POST("/workspace/create", controller.CreateWorkspace)
+	r.DELETE("/workspace/delete", controller.DeleteWorkspace)
+	r.POST("/workspace/invite", controller.CreateUser)
+	r.DELETE("/workspace/remove", controller.DeleteUserFromWorkspace)
+	r.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
+	r.POST("/workspace/role", controller.GrantRoleToUser)
+	r.PUT("/workspace/edit", controller.ChangeWorkspaceAttributes)
 
-	api.GET("/contribution/all", controller.FetchAllContributionInWorkspace)
-	api.GET("/contribution/sent", controller.FetchAllContributionSent)
-	api.GET("/contribution/received", controller.FetchAllContributionReceived)
-	api.POST("/contribution", controller.CreateContribution)
-	api.POST("/contribution/reaction", controller.SendReaction)
-	api.PUT("/contribution", controller.EditContribution)
-	api.DELETE("/contribution", contoller.DeleteContribution)
+	r.GET("/contribution", controller.FetchAllContributionInWorkspace)
+	r.GET("/contribution/sent", controller.FetchAllContributionSent)
+	r.GET("/contribution/received", controller.FetchAllContributionReceived)
+	r.POST("/contribution", controller.CreateContribution)
+	r.POST("/contribution/reaction", controller.SendReaction)
+	r.PUT("/contribution", controller.EditContribution)
+	r.DELETE("/contribution", controller.DeleteContribution)
 
-	api.DELETE("/user", controller.DeleteUserFromWorkspace)
-	api.POST("/user/edit/name", controller.ChangeUserName)
-	api.POST("/user/edit/avatar", controller.ChangeUserAvatarUrl)
+	r.DELETE("/user", controller.DeleteUserFromWorkspace)
+	r.POST("/user", controller.ChangeUserAttributes)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

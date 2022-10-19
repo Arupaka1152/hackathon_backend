@@ -1,5 +1,13 @@
 package controller
 
-func WorkspaceController() {
+func CreateWorkspace() {
+
+}
+
+func ChangeWorkspaceAttributes() {
+
+}
+
+func DeleteWorkspace() {
 
 }

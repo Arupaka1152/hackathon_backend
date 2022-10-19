@@ -1,5 +1,9 @@
 package controller
 
-func AccountController() {
+func Login() {
+
+}
+
+func Signup() {
 
 }

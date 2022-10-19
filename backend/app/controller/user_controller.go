@@ -1,5 +1,21 @@
 package controller
 
-func UserController() {
+func CreateUser() {
+
+}
+
+func FetchAllUsersInWorkspace() {
+
+}
+
+func DeleteUserFromWorkspace() {
+
+}
+
+func GrantRoleToUser() {
+
+}
+
+func ChangeUserAttributes() {
 
 }

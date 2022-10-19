@@ -28,17 +28,13 @@ func (u *Users) FetchAllUsersInWorkspace(workspaceId string) (db *gorm.DB) {
 }
 
 func (p *User) DeleteUserFromWorkspace(userId string) (db *gorm.DB) {
-	return db.Where("Id = ?", userId).Delete(&p)
+	return db.Where("id = ?", userId).Delete(&p)
 }
 
 func (p *User) GrantRoleToUser(userId string, role string) (db *gorm.DB) {
-	return db.Where("Id = ?", userId).Update("role", role)
+	return db.Where("id = ?", userId).Update("role", role)
 }
 
-func (p *User) ChangeUserName(userId string, userName string) (db *gorm.DB) {
-	return db.Where("Id = ?", userId).Update("name", userName)
-}
-
-func (p *User) ChangeUserAvatarUrl(userId string, avatarUrl string) (db *gorm.DB) {
-	return db.Where("Id = ?", userId).Update("avatarUrl", avatarUrl)
+func (p *User) ChangeUserAttributes(userId string, userName string, avatarUrl string) (db *gorm.DB) {
+	return db.Where("id = ?", userId).Updates(User{Name: userName, AvatarUrl: avatarUrl})
 }
