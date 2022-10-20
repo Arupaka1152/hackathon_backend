@@ -18,7 +18,7 @@ func EditContribution(p *model.Contribution, contributionId string, points int, 
 }
 
 func FetchAllContributionInWorkspace(u *model.Contributions, workspaceId string) (db *gorm.DB) {
-	return db.Where("workspaceId = ?", workspaceId).Find(&u)
+	return db.Where("workspace_id = ?", workspaceId).Find(&u)
 }
 
 func FetchAllContributionSent(u *model.Contributions, workspaceId string, from string) (db *gorm.DB) {

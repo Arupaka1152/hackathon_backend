@@ -10,10 +10,10 @@ func CreateUser(p *model.User) (db *gorm.DB) {
 }
 
 func FetchAllUsersInWorkspace(u *model.Users, workspaceId string) (db *gorm.DB) {
-	return db.Where("workspaceId = ?", workspaceId).Find(&u)
+	return db.Where("workspace_id = ?", workspaceId).Find(&u)
 }
 
-func DeleteUserFromWorkspace(p *model.User, userId string) (db *gorm.DB) {
+func DeleteUser(p *model.User, userId string) (db *gorm.DB) {
 	return db.Where("id = ?", userId).Delete(&p)
 }
 
@@ -23,4 +23,8 @@ func GrantRoleToUser(p *model.User, userId string, role string) (db *gorm.DB) {
 
 func ChangeUserAttributes(p *model.User, userId string, userName string, avatarUrl string) (db *gorm.DB) {
 	return db.Model(&p).Where("id = ?", userId).Updates(model.User{Name: userName, AvatarUrl: avatarUrl})
+}
+
+func FetchAllUsers(u *model.Users, accountId string) (db *gorm.DB) {
+	return db.Where("account_id = ?", accountId).Find(&u)
 }

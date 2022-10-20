@@ -8,7 +8,7 @@ func FetchAllUsersInWorkspace() {
 
 }
 
-func DeleteUserFromWorkspace() {
+func DeleteUser() {
 
 }
 

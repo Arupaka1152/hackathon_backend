@@ -2,44 +2,51 @@ package router
 
 import (
 	"backend/app/controller"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"net/http"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func Init() {
-	e := echo.New()
+	g := gin.Default()
 
-	e.POST("/signup", controller.Signup)
-	e.POST("/login", controller.Login)
+	corsConfig := cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+		},
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+		},
+	}
+	g.Use(cors.New(corsConfig))
 
-	e.Use(middleware.CORSWithConfig(
-		middleware.CORSConfig{
-			AllowOrigins: []string{"*"},
-			AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-		}))
+	g.POST("/signup", controller.Signup)
+	g.POST("/login", controller.Login)
 
-	r := e.Group("/restricted")
+	api := g.Group("/api")
 
-	r.GET("/workspace/all", controller.FetchAllWorkSpace)
-	r.POST("/workspace/create", controller.CreateWorkspace)
-	r.DELETE("/workspace/delete", controller.DeleteWorkspace)
-	r.POST("/workspace/invite", controller.CreateUser)
-	r.DELETE("/workspace/remove", controller.DeleteUserFromWorkspace)
-	r.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
-	r.POST("/workspace/role", controller.GrantRoleToUser)
-	r.PUT("/workspace/edit", controller.ChangeWorkspaceAttributes)
+	api.Use(cors.New(corsConfig))
 
-	r.GET("/contribution", controller.FetchAllContributionInWorkspace)
-	r.GET("/contribution/sent", controller.FetchAllContributionSent)
-	r.GET("/contribution/received", controller.FetchAllContributionReceived)
-	r.POST("/contribution", controller.CreateContribution)
-	r.POST("/contribution/reaction", controller.SendReaction)
-	r.PUT("/contribution", controller.EditContribution)
-	r.DELETE("/contribution", controller.DeleteContribution)
+	api.GET("/workspace", controller.FetchAllWorkSpaces)
+	api.POST("/workspace", controller.CreateWorkspace)
+	api.DELETE("/workspace", controller.DeleteWorkspace)
+	api.POST("/workspace/invite", controller.CreateUser)
+	api.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
+	api.POST("/workspace/role", controller.GrantRoleToUser)
+	api.PUT("/workspace", controller.ChangeWorkspaceAttributes)
 
-	r.DELETE("/user", controller.DeleteUserFromWorkspace)
-	r.POST("/user", controller.ChangeUserAttributes)
+	api.GET("/contribution", controller.FetchAllContributionInWorkspace)
+	api.GET("/contribution/sent", controller.FetchAllContributionSent)
+	api.GET("/contribution/received", controller.FetchAllContributionReceived)
+	api.POST("/contribution", controller.CreateContribution)
+	api.POST("/contribution/reaction", controller.SendReaction)
+	api.PUT("/contribution", controller.EditContribution)
+	api.DELETE("/contribution", controller.DeleteContribution)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	api.DELETE("/user", controller.DeleteUser)
+	api.POST("/user", controller.ChangeUserAttributes)
+
+	g.Run(":8000")
 }

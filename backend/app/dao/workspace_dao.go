@@ -17,6 +17,6 @@ func DeleteWorkspace(p *model.Workspace, workspaceId string) (db *gorm.DB) {
 	return db.Where("id = ?", workspaceId).Delete(&p)
 }
 
-func FetchAllWorkspace(u *model.Workspaces, accountId string) (db *gorm.DB) {
-	
+func FetchWorkspaceInfo(p *model.Workspace, workspaceId string) (db *gorm.DB) {
+	return db.Where("id = ?", workspaceId).Find(&p)
 }
