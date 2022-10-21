@@ -27,8 +27,6 @@ func Init() {
 
 	api := g.Group("/api")
 
-	api.Use(cors.New(corsConfig))
-
 	api.GET("/workspace", controller.FetchAllWorkSpaces)
 	api.POST("/workspace", controller.CreateWorkspace)
 	api.DELETE("/workspace", controller.DeleteWorkspace)

@@ -1,17 +1,19 @@
 package controller
 
-func CreateWorkspace() {
+import "github.com/gin-gonic/gin"
+
+func CreateWorkspace(c *gin.Context) {
 
 }
 
-func ChangeWorkspaceAttributes() {
+func ChangeWorkspaceAttributes(c *gin.Context) {
 
 }
 
-func DeleteWorkspace() {
+func DeleteWorkspace(c *gin.Context) {
 
 }
 
-func FetchAllWorkSpaces() {
+func FetchAllWorkSpaces(c *gin.Context) {
 
 }

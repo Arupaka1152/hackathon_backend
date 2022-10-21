@@ -1,21 +1,23 @@
 package controller
 
-func CreateUser() {
+import "github.com/gin-gonic/gin"
+
+func CreateUser(c *gin.Context) {
 
 }
 
-func FetchAllUsersInWorkspace() {
+func FetchAllUsersInWorkspace(c *gin.Context) {
 
 }
 
-func DeleteUser() {
+func DeleteUser(c *gin.Context) {
 
 }
 
-func GrantRoleToUser() {
+func GrantRoleToUser(c *gin.Context) {
 
 }
 
-func ChangeUserAttributes() {
+func ChangeUserAttributes(c *gin.Context) {
 
 }

@@ -1,9 +1,11 @@
 package controller
 
-func Login() {
+import "github.com/gin-gonic/gin"
+
+func Login(c *gin.Context) {
 
 }
 
-func Signup() {
+func Signup(c *gin.Context) {
 
 }
