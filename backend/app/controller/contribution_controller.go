@@ -44,7 +44,6 @@ func CreateContribution(c *gin.Context) {
 	}
 
 	contributionId := ulid.Make().String()
-
 	newContribution := model.Contribution{
 		Id:          contributionId,
 		WorkspaceId: workspaceId,
