@@ -46,5 +46,5 @@ func Init() {
 	api.DELETE("/user", controller.DeleteUser)
 	api.POST("/user", controller.ChangeUserAttributes)
 
-	g.Run(":8000")
+	g.Run(":8080")
 }

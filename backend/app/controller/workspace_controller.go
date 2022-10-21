@@ -99,10 +99,21 @@ func FetchAllWorkSpaces(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
 	accountId := "fakdslsadfkl"
 
-	targetUsers := model.Users
+	targetUsers := model.Users{}
 
 	if err := dao.FetchAllUsers(&targetUsers, accountId); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	
+
+	targetWorkspaces := model.Workspaces{}
+
+	for i := 0; i < len(targetUsers); i++ {
+		targetWorkspace := model.Workspace{}
+		if err := dao.FetchWorkspaceInfo(&targetWorkspace, targetUsers[i].WorkspaceId); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		targetWorkspaces = append(targetWorkspaces, targetWorkspace)
+	}
+
+	c.JSON(http.StatusOK, targetWorkspaces)
 }
