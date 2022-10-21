@@ -5,6 +5,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func FetchContribution(p *model.Contribution, contributionId string) (db *gorm.DB) {
+	return db.Where("id = ?", contributionId).Find(&p)
+}
+
 func CreateContribution(p *model.Contribution) (db *gorm.DB) {
 	return db.Create(&p)
 }
