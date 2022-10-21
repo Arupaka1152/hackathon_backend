@@ -155,7 +155,7 @@ func SendReaction(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
 	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
-	j
+
 	req := new(SendReactionReq)
 	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
