@@ -2,7 +2,6 @@ package controller
 
 import "C"
 import (
-	"backend/app/dao"
 	"backend/app/model"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
@@ -42,7 +41,7 @@ func CreateContribution(c *gin.Context) {
 		Reaction:    0,
 	}
 
-	if err := dao.CreateContribution(&newContribution).Error; err != nil {
+	if err := newContribution.CreateContribution().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -60,7 +59,9 @@ func DeleteContribution(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	if err := dao.CreateContribution(&newContribution).Error; err != nil {
+	contributionId := req.ContributionId
+
+	if err := model.Contribution.DeleteContribution(contributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }

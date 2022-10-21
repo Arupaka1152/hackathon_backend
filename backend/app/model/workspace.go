@@ -15,3 +15,19 @@ type Workspace struct {
 }
 
 type Workspaces []Workspace
+
+func (p *Workspace) CreateWorkspace() (db *gorm.DB) {
+	return db.Create(&p)
+}
+
+func (p *Workspace) ChangeWorkspaceAttributes(workspaceId string, workspaceName string, avatarUrl string) (db *gorm.DB) {
+	return db.Model(&p).Where("id = ?", workspaceId).Updates(Workspace{Name: workspaceName, AvatarUrl: avatarUrl})
+}
+
+func (p *Workspace) DeleteWorkspace(workspaceId string) (db *gorm.DB) {
+	return db.Where("id = ?", workspaceId).Delete(&p)
+}
+
+func (p *Workspace) FetchWorkspaceInfo(workspaceId string) (db *gorm.DB) {
+	return db.Where("id = ?", workspaceId).Find(&p)
+}

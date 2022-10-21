@@ -14,3 +14,7 @@ type Account struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
+
+func (p *Account) CreateAccount() (db *gorm.DB) {
+	return db.Create(&p)
+}
