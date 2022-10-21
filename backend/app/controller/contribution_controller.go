@@ -1,6 +1,5 @@
 package controller
 
-import "C"
 import (
 	"backend/app/dao"
 	"backend/app/model"
