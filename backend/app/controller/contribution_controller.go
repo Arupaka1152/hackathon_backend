@@ -160,16 +160,15 @@ func SendReaction(c *gin.Context) {
 	}
 
 	targetContribution := model.Contribution{}
-	contributionId := req.ContributionId
 
-	if err := dao.FetchContribution(&targetContribution, contributionId).Error; err != nil {
+	if err := dao.FetchContribution(&targetContribution, req.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	totalReaction := targetContribution.Reaction + 1
 	newContribution := model.Contribution{}
 
-	if err := dao.SendReaction(&newContribution, contributionId, totalReaction).Error; err != nil {
+	if err := dao.SendReaction(&newContribution, req.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
