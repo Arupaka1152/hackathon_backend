@@ -20,6 +20,11 @@ type GrantRoleToUserReq struct {
 	Role   string `json:"role"`
 }
 
+type ChangeUserAttributesReq struct {
+	UserName      string `json:"workspace_name"`
+	UserAvatarUrl string `json:"workspace_avatar_url"`
+}
+
 func CreateUser(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
 	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
@@ -121,5 +126,21 @@ func GrantRoleToUser(c *gin.Context) {
 }
 
 func ChangeUserAttributes(c *gin.Context) {
-	
+	workspaceId := c.Request.Header.Get("workspace_id")
+	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
+	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
+	userId := "fdksjlakflafdj"
+
+	req := new(ChangeUserAttributesReq)
+	if err := c.Bind(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	targetUser := model.User{}
+
+	if err := dao.ChangeUserAttributes(&targetUser, userId, req.UserName, req.UserAvatarUrl).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, targetUser)
 }
