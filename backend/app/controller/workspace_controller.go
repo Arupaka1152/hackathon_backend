@@ -37,7 +37,7 @@ func CreateWorkspace(c *gin.Context) {
 		AvatarUrl: req.WorkspaceAvatarUrl,
 	}
 
-	if err := dao.CreateWorkspace(&newWorkspace); err != nil {
+	if err := dao.CreateWorkspace(&newWorkspace).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -51,7 +51,7 @@ func CreateWorkspace(c *gin.Context) {
 		AvatarUrl:   req.UserAvatarUrl,
 	}
 
-	if err := dao.CreateUser(&newUser); err != nil {
+	if err := dao.CreateUser(&newUser).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -72,7 +72,7 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 
 	targetWorkspace := model.Workspace{}
 
-	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.WorkspaceAvatarUrl); err != nil {
+	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -87,7 +87,7 @@ func DeleteWorkspace(c *gin.Context) {
 
 	targetWorkspace := model.Workspace{}
 
-	if err := dao.DeleteWorkspace(&targetWorkspace, workspaceId); err != nil {
+	if err := dao.DeleteWorkspace(&targetWorkspace, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -101,18 +101,18 @@ func FetchAllWorkSpaces(c *gin.Context) {
 
 	targetUsers := model.Users{}
 
-	if err := dao.FetchAllUsers(&targetUsers, accountId); err != nil {
+	if err := dao.FetchAllUsers(&targetUsers, accountId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetWorkspaces := model.Workspaces{}
 
 	for i := 0; i < len(targetUsers); i++ {
-		targetWorkspace := model.Workspace{}
-		if err := dao.FetchWorkspaceInfo(&targetWorkspace, targetUsers[i].WorkspaceId); err != nil {
+		workspace := model.Workspace{}
+		if err := dao.FetchWorkspaceInfo(&workspace, targetUsers[i].WorkspaceId).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
-		targetWorkspaces = append(targetWorkspaces, targetWorkspace)
+		targetWorkspaces = append(targetWorkspaces, workspace)
 	}
 
 	c.JSON(http.StatusOK, targetWorkspaces)

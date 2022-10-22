@@ -34,6 +34,7 @@ func Init() {
 	api.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
 	api.POST("/workspace/role", controller.GrantRoleToUser)
 	api.PUT("/workspace", controller.ChangeWorkspaceAttributes)
+	api.POST("/workspace/remove", controller.RemoveUserFromWorkspace)
 
 	api.GET("/contribution", controller.FetchAllContributionInWorkspace)
 	api.GET("/contribution/sent", controller.FetchAllContributionSent)
