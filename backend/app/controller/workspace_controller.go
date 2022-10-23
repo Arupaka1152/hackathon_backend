@@ -25,16 +25,16 @@ func CreateWorkspace(c *gin.Context) {
 	//アクセストークンによる認証だけでOK アカウントIDを取り出しておく
 	accountId := "fkdlasafkdsl"
 
-	req := new(CreateWorkspaceReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(CreateWorkspaceReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	workspaceId := ulid.Make().String()
 	newWorkspace := model.Workspace{
 		Id:        workspaceId,
-		Name:      req.WorkspaceName,
-		AvatarUrl: req.WorkspaceAvatarUrl,
+		Name:      r.WorkspaceName,
+		AvatarUrl: r.WorkspaceAvatarUrl,
 	}
 
 	if err := dao.CreateWorkspace(&newWorkspace).Error; err != nil {
@@ -44,11 +44,11 @@ func CreateWorkspace(c *gin.Context) {
 	userId := ulid.Make().String()
 	newUser := model.User{
 		Id:          userId,
-		Name:        req.UserName,
+		Name:        r.UserName,
 		AccountId:   accountId,
 		WorkspaceId: workspaceId,
 		Role:        "owner",
-		AvatarUrl:   req.UserAvatarUrl,
+		AvatarUrl:   r.UserAvatarUrl,
 	}
 
 	if err := dao.CreateUser(&newUser).Error; err != nil {
@@ -65,14 +65,14 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
 	//ownerのみが変更できるようにする
 
-	req := new(ChangeWorkspaceAttributesReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(ChangeWorkspaceAttributesReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetWorkspace := model.Workspace{}
 
-	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.WorkspaceAvatarUrl).Error; err != nil {
+	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, r.WorkspaceName, r.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 

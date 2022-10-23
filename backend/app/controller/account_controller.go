@@ -20,17 +20,17 @@ type LoginReq struct {
 }
 
 func Signup(c *gin.Context) {
-	req := new(SignupReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(SignupReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	accountId := ulid.Make().String()
 	newAccount := model.Account{
 		Id:       accountId,
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password, //パスワードはハッシュ化する！！
+		Name:     r.Name,
+		Email:    r.Email,
+		Password: r.Password, //パスワードはハッシュ化する！！
 	}
 
 	if err := dao.CreateAccount(&newAccount).Error; err != nil {
@@ -41,14 +41,14 @@ func Signup(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	req := new(LoginReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(LoginReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FetchAccountByEmail(&targetAccount, req.Email).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "account not found"})
+	if err := dao.FetchAccountByEmail(&targetAccount, r.Email).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "account not found"})
 	}
 
 	//パスワード（ハッシュ化したもの）を比較して一致しなければhttp.StatusUnauthorizedを返す

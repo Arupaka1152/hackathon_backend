@@ -31,24 +31,24 @@ func CreateUser(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
 	//ownerかmanagerが招待できるようにする
 
-	req := new(CreateUserReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(CreateUserReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FetchAccountByEmail(&targetAccount, req.Email).Error; err != nil {
+	if err := dao.FetchAccountByEmail(&targetAccount, r.Email).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "account not found"})
 	}
 
 	userId := ulid.Make().String()
 	newUser := model.User{
 		Id:          userId,
-		Name:        req.Name,
+		Name:        r.Name,
 		AccountId:   targetAccount.Id,
 		WorkspaceId: workspaceId,
-		Role:        req.Role,
-		AvatarUrl:   req.AvatarUrl,
+		Role:        r.Role,
+		AvatarUrl:   r.AvatarUrl,
 	}
 
 	if err := dao.CreateUser(&newUser).Error; err != nil {
@@ -108,17 +108,17 @@ func GrantRoleToUser(c *gin.Context) {
 	//ownerかmanagerのみが変更できるようにする
 	//managerかgeneralしか選べないようにする
 
-	req := new(GrantRoleToUserReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(GrantRoleToUserReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	if req.Role != "manager" && req.Role != "general" {
+	if r.Role != "manager" && r.Role != "general" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "choose manager or general"})
 	}
 
 	targetUser := model.User{}
-	if err := dao.GrantRoleToUser(&targetUser, req.UserId, req.Role).Error; err != nil {
+	if err := dao.GrantRoleToUser(&targetUser, r.UserId, r.Role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -131,14 +131,14 @@ func ChangeUserAttributes(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
 	userId := "fdksjlakflafdj"
 
-	req := new(ChangeUserAttributesReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(ChangeUserAttributesReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetUser := model.User{}
 
-	if err := dao.ChangeUserAttributes(&targetUser, userId, req.UserName, req.UserAvatarUrl).Error; err != nil {
+	if err := dao.ChangeUserAttributes(&targetUser, userId, r.UserName, r.UserAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 

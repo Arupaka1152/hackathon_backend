@@ -38,8 +38,8 @@ func CreateContribution(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
 	userId := "faksdjlkajlsdfkljfads"
 
-	req := new(CreateContributionReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(CreateContributionReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -48,9 +48,9 @@ func CreateContribution(c *gin.Context) {
 		Id:          contributionId,
 		WorkspaceId: workspaceId,
 		From:        userId,
-		To:          req.ReceiverId,
-		Points:      req.Points,
-		Message:     req.Message,
+		To:          r.ReceiverId,
+		Points:      r.Points,
+		Message:     r.Message,
 		Reaction:    0,
 	}
 
@@ -67,14 +67,14 @@ func DeleteContribution(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
 	//もしContributionのFromとuserIdが異なれば認可エラーを吐く
 
-	req := new(DeleteContributionReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(DeleteContributionReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetContribution := model.Contribution{}
 
-	if err := dao.DeleteContribution(&targetContribution, req.ContributionId).Error; err != nil {
+	if err := dao.DeleteContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -87,14 +87,14 @@ func EditContribution(c *gin.Context) {
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
 	//もしContributionのFromとuserIdが異なれば認可エラーを吐く
 
-	req := new(EditContributionReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(EditContributionReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetContribution := model.Contribution{}
 
-	if err := dao.EditContribution(&targetContribution, req.ContributionId, req.Points, req.Message).Error; err != nil {
+	if err := dao.EditContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -135,14 +135,14 @@ func FetchAllContributionReceived(c *gin.Context) {
 	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
 
-	req := new(FetchAllContributionSentReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(FetchAllContributionSentReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetContributions := model.Contributions{}
 
-	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, req.ReceiverId).Error; err != nil {
+	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, r.ReceiverId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -154,21 +154,21 @@ func SendReaction(c *gin.Context) {
 	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
 	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
 
-	req := new(SendReactionReq)
-	if err := c.Bind(&req); err != nil {
+	r := new(SendReactionReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetContribution := model.Contribution{}
 
-	if err := dao.FetchContribution(&targetContribution, req.ContributionId).Error; err != nil {
+	if err := dao.FetchContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	totalReaction := targetContribution.Reaction + 1
 	newContribution := model.Contribution{}
 
-	if err := dao.SendReaction(&newContribution, req.ContributionId, totalReaction).Error; err != nil {
+	if err := dao.SendReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
