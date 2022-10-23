@@ -14,6 +14,7 @@ func UserAuth(workspaceId string, accountId string) (userId string, role string,
 	}
 
 	userId = targetUser.Id
+	role = targetUser.Role
 	return userId, role, nil
 }
 
