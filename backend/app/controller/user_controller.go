@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
 	"github.com/gin-gonic/gin"
@@ -25,30 +26,46 @@ type ChangeUserAttributesReq struct {
 	UserAvatarUrl string `json:"workspace_avatar_url"`
 }
 
+type RemoveUserFromWorkspaceReq struct {
+	UserId string `json:"user_id"`
+}
+
 func CreateUser(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//ownerかmanagerが招待できるようにする
+	token := c.Request.Header.Get("authentication")
 
-	req := new(CreateUserReq)
-	if err := c.Bind(&req); err != nil {
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role != "manager" && role != "owner" {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	r := new(CreateUserReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FetchAccountByEmail(&targetAccount, req.Email).Error; err != nil {
+	if err := dao.FetchAccountByEmail(&targetAccount, r.Email).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "account not found"})
 	}
 
-	userId := ulid.Make().String()
+	newUserId := ulid.Make().String()
 	newUser := model.User{
-		Id:          userId,
-		Name:        req.Name,
+		Id:          newUserId,
+		Name:        r.Name,
 		AccountId:   targetAccount.Id,
 		WorkspaceId: workspaceId,
-		Role:        req.Role,
-		AvatarUrl:   req.AvatarUrl,
+		Role:        r.Role,
+		AvatarUrl:   r.AvatarUrl,
 	}
 
 	if err := dao.CreateUser(&newUser).Error; err != nil {
@@ -60,8 +77,17 @@ func CreateUser(c *gin.Context) {
 
 func FetchAllUsersInWorkspace(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, _, err = auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	targetUsers := model.Users{}
 	if err := dao.FetchAllUsersInWorkspace(&targetUsers, workspaceId).Error; err != nil {
@@ -73,13 +99,33 @@ func FetchAllUsersInWorkspace(c *gin.Context) {
 
 func RemoveUserFromWorkspace(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//他のユーザーを削除するため、ownerかmanagerのみが削除できるようにする
-	userId := "dsafkljdfkslja"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role != "manager" && role != "owner" {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	r := new(RemoveUserFromWorkspaceReq)
+	if err := c.Bind(&r); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	if userId == r.UserId {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant delete yourself"})
+	}
 
 	targetUser := model.User{}
-	if err := dao.DeleteUser(&targetUser, userId).Error; err != nil {
+	if err := dao.DeleteUser(&targetUser, r.UserId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -88,10 +134,21 @@ func RemoveUserFromWorkspace(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//自身を削除するために使う、ownerは自身を削除できないようにする
-	userId := "dsafkljdfkslja"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role == "owner" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant delete yourself"})
+	}
 
 	targetUser := model.User{}
 	if err := dao.DeleteUser(&targetUser, userId).Error; err != nil {
@@ -103,22 +160,33 @@ func DeleteUser(c *gin.Context) {
 
 func GrantRoleToUser(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//ownerかmanagerのみが変更できるようにする
-	//managerかgeneralしか選べないようにする
+	token := c.Request.Header.Get("authentication")
 
-	req := new(GrantRoleToUserReq)
-	if err := c.Bind(&req); err != nil {
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role != "manager" && role != "owner" {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	r := new(GrantRoleToUserReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	if req.Role != "manager" && req.Role != "general" {
+	if r.Role != "manager" && r.Role != "general" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "choose manager or general"})
 	}
 
 	targetUser := model.User{}
-	if err := dao.GrantRoleToUser(&targetUser, req.UserId, req.Role).Error; err != nil {
+	if err := dao.GrantRoleToUser(&targetUser, r.UserId, r.Role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -127,18 +195,26 @@ func GrantRoleToUser(c *gin.Context) {
 
 func ChangeUserAttributes(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	userId := "fdksjlakflafdj"
+	token := c.Request.Header.Get("authentication")
 
-	req := new(ChangeUserAttributesReq)
-	if err := c.Bind(&req); err != nil {
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, _, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	r := new(ChangeUserAttributesReq)
+	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	targetUser := model.User{}
 
-	if err := dao.ChangeUserAttributes(&targetUser, userId, req.UserName, req.UserAvatarUrl).Error; err != nil {
+	if err := dao.ChangeUserAttributes(&targetUser, userId, r.UserName, r.UserAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
