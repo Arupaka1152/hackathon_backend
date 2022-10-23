@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,12 @@ type ChangeWorkspaceAttributesReq struct {
 }
 
 func CreateWorkspace(c *gin.Context) {
-	//作る時点ではワークスペースは存在していないのでヘッダーにはワークスペースIDはない
-	//アクセストークンによる認証だけでOK アカウントIDを取り出しておく
-	accountId := "fkdlasafkdsl"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
 
 	r := new(CreateWorkspaceReq)
 	if err := c.Bind(&r); err != nil {
@@ -61,9 +65,21 @@ func CreateWorkspace(c *gin.Context) {
 
 func ChangeWorkspaceAttributes(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//ownerのみが変更できるようにする
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role != "owner" {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(ChangeWorkspaceAttributesReq)
 	if err := c.Bind(&r); err != nil {
@@ -81,9 +97,21 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 
 func DeleteWorkspace(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	//ownerのみが削除できるようにする
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, role, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
+
+	if role != "owner" {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	targetWorkspace := model.Workspace{}
 
@@ -95,9 +123,12 @@ func DeleteWorkspace(c *gin.Context) {
 }
 
 func FetchAllWorkSpaces(c *gin.Context) {
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	accountId := "fakdslsadfkl"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
 
 	targetUsers := model.Users{}
 

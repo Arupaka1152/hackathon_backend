@@ -28,3 +28,7 @@ func ChangeUserAttributes(p *model.User, userId string, userName string, avatarU
 func FetchAllUsers(u *model.Users, accountId string) (db *gorm.DB) {
 	return db.Where("account_id = ?", accountId).Find(&u)
 }
+
+func FetchUserById(p *model.User, workspaceId string, accountId string) (db *gorm.DB) {
+	return db.Where("workspace_id = ? AND account_id = ?", workspaceId, accountId).Find(&p)
+}

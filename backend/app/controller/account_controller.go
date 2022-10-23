@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -25,19 +27,27 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
+	hash, err := bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
+	password := string(hash)
+
 	accountId := ulid.Make().String()
 	newAccount := model.Account{
 		Id:       accountId,
 		Name:     r.Name,
 		Email:    r.Email,
-		Password: r.Password, //パスワードはハッシュ化する！！
+		Password: password,
 	}
 
 	if err := dao.CreateAccount(&newAccount).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	//トークンを生成、トークンをヘッダーに入れて送信
+	token, err := auth.GenerateToken(accountId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"authentication": token})
 }
 
 func Login(c *gin.Context) {
@@ -51,7 +61,14 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "account not found"})
 	}
 
-	//パスワード（ハッシュ化したもの）を比較して一致しなければhttp.StatusUnauthorizedを返す
+	if err := bcrypt.CompareHashAndPassword([]byte(targetAccount.Password), []byte(r.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid password"})
+	}
 
-	//トークンを生成、トークンをヘッダーに入れて送信
+	token, err := auth.GenerateToken(targetAccount.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"authentication": token})
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,17 @@ type SendReactionReq struct {
 
 func CreateContribution(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐くようにする
-	userId := "faksdjlkajlsdfkljfads"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, _, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(CreateContributionReq)
 	if err := c.Bind(&r); err != nil {
@@ -63,17 +72,28 @@ func CreateContribution(c *gin.Context) {
 
 func DeleteContribution(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
-	//もしContributionのFromとuserIdが異なれば認可エラーを吐く
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, _, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(DeleteContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	targetContribution := model.Contribution{}
+	if err = auth.ContributionAuth(r.ContributionId, userId); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
+	targetContribution := model.Contribution{}
 	if err := dao.DeleteContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -83,17 +103,28 @@ func DeleteContribution(c *gin.Context) {
 
 func EditContribution(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
-	//もしContributionのFromとuserIdが異なれば認可エラーを吐く
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, _, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(EditContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	targetContribution := model.Contribution{}
+	if err = auth.ContributionAuth(r.ContributionId, userId); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
+	targetContribution := model.Contribution{}
 	if err := dao.EditContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -103,11 +134,19 @@ func EditContribution(c *gin.Context) {
 
 func FetchAllContributionInWorkspace(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, _, err = auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	targetContributions := model.Contributions{}
-
 	if err := dao.FetchAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -117,12 +156,19 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 
 func FetchAllContributionSent(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
-	userId := "akfjdlksadjlfkajlfsd"
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	userId, _, err := auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	targetContributions := model.Contributions{}
-
 	if err := dao.FetchAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -132,8 +178,17 @@ func FetchAllContributionSent(c *gin.Context) {
 
 func FetchAllContributionReceived(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, _, err = auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(FetchAllContributionSentReq)
 	if err := c.Bind(&r); err != nil {
@@ -141,7 +196,6 @@ func FetchAllContributionReceived(c *gin.Context) {
 	}
 
 	targetContributions := model.Contributions{}
-
 	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, r.ReceiverId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -151,8 +205,17 @@ func FetchAllContributionReceived(c *gin.Context) {
 
 func SendReaction(c *gin.Context) {
 	workspaceId := c.Request.Header.Get("workspace_id")
-	//ここでアクセストークンをデコードしてアカウントIDを取得する accountId := ...
-	//取得したworkspaceIdとaccountIdを使ってデータベースを参照しuserIdを取得する、できなかったら認証エラーを吐く
+	token := c.Request.Header.Get("authentication")
+
+	accountId, err := auth.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	}
+
+	_, _, err = auth.UserAuth(workspaceId, accountId)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+	}
 
 	r := new(SendReactionReq)
 	if err := c.Bind(&r); err != nil {
@@ -160,7 +223,6 @@ func SendReaction(c *gin.Context) {
 	}
 
 	targetContribution := model.Contribution{}
-
 	if err := dao.FetchContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
