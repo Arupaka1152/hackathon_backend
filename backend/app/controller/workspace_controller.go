@@ -4,6 +4,7 @@ import (
 	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
+	"backend/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
 	"net/http"
@@ -64,18 +65,8 @@ func CreateWorkspace(c *gin.Context) {
 }
 
 func ChangeWorkspaceAttributes(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+	role := utils.GetValueFromContext(c, "role")
 
 	if role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
@@ -96,18 +87,8 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 }
 
 func DeleteWorkspace(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+	role := utils.GetValueFromContext(c, "role")
 
 	if role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})

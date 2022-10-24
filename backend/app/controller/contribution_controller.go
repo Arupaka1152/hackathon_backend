@@ -4,6 +4,7 @@ import (
 	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
+	"backend/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
 	"net/http"
@@ -34,23 +35,13 @@ type SendReactionReq struct {
 }
 
 func CreateContribution(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, _, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
-
 	r := new(CreateContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
+
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+	userId := utils.GetValueFromContext(c, "userId")
 
 	contributionId := ulid.Make().String()
 	newContribution := model.Contribution{
@@ -71,25 +62,14 @@ func CreateContribution(c *gin.Context) {
 }
 
 func DeleteContribution(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, _, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
-
 	r := new(DeleteContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	if err = auth.ContributionAuth(r.ContributionId, userId); err != nil {
+	userId := utils.GetValueFromContext(c, "userId")
+
+	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 	}
 
@@ -102,25 +82,14 @@ func DeleteContribution(c *gin.Context) {
 }
 
 func EditContribution(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, _, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
-
 	r := new(EditContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	if err = auth.ContributionAuth(r.ContributionId, userId); err != nil {
+	userId := utils.GetValueFromContext(c, "userId")
+
+	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 	}
 
@@ -133,18 +102,7 @@ func EditContribution(c *gin.Context) {
 }
 
 func FetchAllContributionInWorkspace(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, _, err = auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
 	targetContributions := model.Contributions{}
 	if err := dao.FetchAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
@@ -155,18 +113,8 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 }
 
 func FetchAllContributionSent(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, _, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+	userId := utils.GetValueFromContext(c, "userId")
 
 	targetContributions := model.Contributions{}
 	if err := dao.FetchAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
@@ -177,18 +125,7 @@ func FetchAllContributionSent(c *gin.Context) {
 }
 
 func FetchAllContributionReceived(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, _, err = auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
 	r := new(FetchAllContributionSentReq)
 	if err := c.Bind(&r); err != nil {
@@ -204,19 +141,6 @@ func FetchAllContributionReceived(c *gin.Context) {
 }
 
 func SendReaction(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, _, err = auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
-
 	r := new(SendReactionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

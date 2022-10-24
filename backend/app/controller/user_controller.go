@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
+	"backend/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
 	"net/http"
@@ -31,18 +31,8 @@ type RemoveUserFromWorkspaceReq struct {
 }
 
 func CreateUser(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+	role := utils.GetValueFromContext(c, "role")
 
 	if role != "manager" && role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
@@ -76,18 +66,7 @@ func CreateUser(c *gin.Context) {
 }
 
 func FetchAllUsersInWorkspace(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, _, err = auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
 	targetUsers := model.Users{}
 	if err := dao.FetchAllUsersInWorkspace(&targetUsers, workspaceId).Error; err != nil {
@@ -98,18 +77,8 @@ func FetchAllUsersInWorkspace(c *gin.Context) {
 }
 
 func RemoveUserFromWorkspace(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	userId := utils.GetValueFromContext(c, "userId")
+	role := utils.GetValueFromContext(c, "role")
 
 	if role != "manager" && role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
@@ -133,18 +102,8 @@ func RemoveUserFromWorkspace(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	userId := utils.GetValueFromContext(c, "userId")
+	role := utils.GetValueFromContext(c, "role")
 
 	if role == "owner" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant delete yourself"})
@@ -159,18 +118,7 @@ func DeleteUser(c *gin.Context) {
 }
 
 func GrantRoleToUser(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	_, role, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	role := utils.GetValueFromContext(c, "role")
 
 	if role != "manager" && role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
@@ -194,18 +142,7 @@ func GrantRoleToUser(c *gin.Context) {
 }
 
 func ChangeUserAttributes(c *gin.Context) {
-	workspaceId := c.Request.Header.Get("workspace_id")
-	token := c.Request.Header.Get("authentication")
-
-	accountId, err := auth.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	userId, _, err := auth.UserAuth(workspaceId, accountId)
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
-	}
+	userId := utils.GetValueFromContext(c, "userId")
 
 	r := new(ChangeUserAttributesReq)
 	if err := c.Bind(&r); err != nil {
