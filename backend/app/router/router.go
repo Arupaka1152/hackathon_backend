@@ -26,14 +26,15 @@ func Init() {
 	g.POST("/signup", controller.Signup)
 	g.POST("/login", controller.Login)
 
+	g.POST("/workspace", controller.CreateWorkspace)
+	g.GET("/workspace", controller.FetchAllWorkSpaces)
+
 	api := g.Group("/api")
 
 	api.Use(cors.New(corsConfig))
 	api.Use(middleware.AuthMiddleware())
 
-	api.GET("/workspace", controller.FetchAllWorkSpaces)
 	api.GET("/workspace/member", controller.FetchAllUsersInWorkspace)
-	api.POST("/workspace", controller.CreateWorkspace)
 	api.POST("/workspace/invite", controller.CreateUser)
 	api.POST("/workspace/role", controller.GrantRoleToUser)
 	api.POST("/workspace/remove", controller.RemoveUserFromWorkspace)
