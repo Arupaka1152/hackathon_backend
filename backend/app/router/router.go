@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Init() {
+func Router() {
 	g := gin.Default()
 
 	corsConfig := cors.Config{

@@ -5,10 +5,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateAccount(p *model.Account) (db *gorm.DB) {
+func CreateAccount(p *model.Account) (tx *gorm.DB) {
 	return db.Create(&p)
 }
 
-func FetchAccountByEmail(p *model.Account, email string) (db *gorm.DB) {
+func FetchAccountByEmail(p *model.Account, email string) (tx *gorm.DB) {
 	return db.Where("email = ?", email).Find(&p)
 }

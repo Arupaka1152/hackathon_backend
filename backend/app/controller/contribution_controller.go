@@ -11,33 +11,34 @@ import (
 )
 
 type CreateContributionReq struct {
-	ReceiverId string `json:"receiver_id"`
-	Points     int    `json:"points"`
-	Message    string `json:"message"`
+	ReceiverId string `json:"receiver_id" binding:"required"`
+	Points     int    `json:"points" binding:"required"`
+	Message    string `json:"message" binding:"required"`
 }
 
 type DeleteContributionReq struct {
-	ContributionId string `json:"contribution_id"`
+	ContributionId string `json:"contribution_id" binding:"required"`
 }
 
 type EditContributionReq struct {
-	ContributionId string `json:"contribution_id"`
-	Points         int    `json:"points"`
-	Message        string `json:"message"`
+	ContributionId string `json:"contribution_id" binding:"required"`
+	Points         int    `json:"points" binding:"required"`
+	Message        string `json:"message" binding:"required"`
 }
 
 type FetchAllContributionSentReq struct {
-	ReceiverId string `json:"receiver_id"`
+	ReceiverId string `json:"receiver_id" binding:"required"`
 }
 
 type SendReactionReq struct {
-	ContributionId string `json:"contribution_id"`
+	ContributionId string `json:"contribution_id" binding:"required"`
 }
 
 func CreateContribution(c *gin.Context) {
 	r := new(CreateContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
@@ -56,6 +57,7 @@ func CreateContribution(c *gin.Context) {
 
 	if err := dao.CreateContribution(&newContribution).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, newContribution)
@@ -65,17 +67,20 @@ func DeleteContribution(c *gin.Context) {
 	r := new(DeleteContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
 
 	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+		return
 	}
 
 	targetContribution := model.Contribution{}
 	if err := dao.DeleteContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "contribution deleted"})
@@ -85,17 +90,20 @@ func EditContribution(c *gin.Context) {
 	r := new(EditContributionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
 
 	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
+		return
 	}
 
 	targetContribution := model.Contribution{}
 	if err := dao.EditContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, targetContribution)
@@ -107,6 +115,7 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 	targetContributions := model.Contributions{}
 	if err := dao.FetchAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, targetContributions)
@@ -119,6 +128,7 @@ func FetchAllContributionSent(c *gin.Context) {
 	targetContributions := model.Contributions{}
 	if err := dao.FetchAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, targetContributions)
@@ -130,11 +140,13 @@ func FetchAllContributionReceived(c *gin.Context) {
 	r := new(FetchAllContributionSentReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	targetContributions := model.Contributions{}
 	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, r.ReceiverId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, targetContributions)
@@ -144,11 +156,13 @@ func SendReaction(c *gin.Context) {
 	r := new(SendReactionReq)
 	if err := c.Bind(&r); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	targetContribution := model.Contribution{}
 	if err := dao.FetchContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	totalReaction := targetContribution.Reaction + 1
@@ -156,6 +170,7 @@ func SendReaction(c *gin.Context) {
 
 	if err := dao.SendReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, newContribution)

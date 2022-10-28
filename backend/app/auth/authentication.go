@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"os"
 	"time"
 )
 
@@ -16,7 +15,8 @@ func GenerateToken(accountId string) (signedToken string, err error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	secretKey := os.Getenv("secret_key")
+	//secretKey := os.Getenv("secret_key")
+	secretKey := "secret"
 
 	return token.SignedString([]byte(secretKey))
 }
@@ -27,7 +27,8 @@ func ParseToken(signedToken string) (accountId string, err error) {
 			return "", fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		secretKey := os.Getenv("secret_key")
+		//secretKey := os.Getenv("secret_key")
+		secretKey := "secret"
 		return []byte(secretKey), nil
 	})
 
