@@ -22,8 +22,8 @@ type GrantRoleToUserReq struct {
 }
 
 type ChangeUserAttributesReq struct {
-	UserName      string `json:"workspace_name" binding:"required"`
-	UserAvatarUrl string `json:"workspace_avatar_url"`
+	UserName      string `json:"user_name" binding:"required"`
+	UserAvatarUrl string `json:"user_avatar_url"`
 }
 
 type RemoveUserFromWorkspaceReq struct {
@@ -47,6 +47,11 @@ func CreateUser(c *gin.Context) {
 
 	targetAccount := model.Account{}
 	if err := dao.FetchAccountByEmail(&targetAccount, r.Email).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if targetAccount.Id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "account not found"})
 		return
 	}
@@ -129,6 +134,7 @@ func DeleteUser(c *gin.Context) {
 }
 
 func GrantRoleToUser(c *gin.Context) {
+	userId := utils.GetValueFromContext(c, "userId")
 	role := utils.GetValueFromContext(c, "role")
 
 	if role != "manager" && role != "owner" {
@@ -144,6 +150,11 @@ func GrantRoleToUser(c *gin.Context) {
 
 	if r.Role != "manager" && r.Role != "general" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "choose manager or general"})
+		return
+	}
+
+	if userId == r.UserId {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant change your role"})
 		return
 	}
 
@@ -166,7 +177,6 @@ func ChangeUserAttributes(c *gin.Context) {
 	}
 
 	targetUser := model.User{}
-
 	if err := dao.ChangeUserAttributes(&targetUser, userId, r.UserName, r.UserAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -84,7 +84,6 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 	}
 
 	targetWorkspace := model.Workspace{}
-
 	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, r.WorkspaceName, r.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -103,7 +102,6 @@ func DeleteWorkspace(c *gin.Context) {
 	}
 
 	targetWorkspace := model.Workspace{}
-
 	if err := dao.DeleteWorkspace(&targetWorkspace, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -121,15 +119,14 @@ func FetchAllWorkSpaces(c *gin.Context) {
 		return
 	}
 
+	//ここのクエリ文を一つにしたい！！
 	targetUsers := model.Users{}
-
 	if err := dao.FetchAllUsers(&targetUsers, accountId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetWorkspaces := model.Workspaces{}
-
 	for i := 0; i < len(targetUsers); i++ {
 		workspace := model.Workspace{}
 		if err := dao.FetchWorkspaceInfo(&workspace, targetUsers[i].WorkspaceId).Error; err != nil {

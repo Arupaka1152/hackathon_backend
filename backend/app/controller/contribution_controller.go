@@ -26,10 +26,6 @@ type EditContributionReq struct {
 	Message        string `json:"message" binding:"required"`
 }
 
-type FetchAllContributionSentReq struct {
-	ReceiverId string `json:"receiver_id" binding:"required"`
-}
-
 type SendReactionReq struct {
 	ContributionId string `json:"contribution_id" binding:"required"`
 }
@@ -71,7 +67,6 @@ func DeleteContribution(c *gin.Context) {
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
-
 	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 		return
@@ -94,7 +89,6 @@ func EditContribution(c *gin.Context) {
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
-
 	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 		return
@@ -136,15 +130,10 @@ func FetchAllContributionSent(c *gin.Context) {
 
 func FetchAllContributionReceived(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
-
-	r := new(FetchAllContributionSentReq)
-	if err := c.Bind(&r); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	userId := utils.GetValueFromContext(c, "userId")
 
 	targetContributions := model.Contributions{}
-	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, r.ReceiverId).Error; err != nil {
+	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -159,6 +148,7 @@ func SendReaction(c *gin.Context) {
 		return
 	}
 
+	//ここのクエリ文を一つにしたい！！
 	targetContribution := model.Contribution{}
 	if err := dao.FetchContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -167,7 +157,6 @@ func SendReaction(c *gin.Context) {
 
 	totalReaction := targetContribution.Reaction + 1
 	newContribution := model.Contribution{}
-
 	if err := dao.SendReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
