@@ -84,8 +84,7 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 	}
 
 	targetWorkspace := model.Workspace{}
-
-	if err := dao.ChangeWorkspaceAttributes(&targetWorkspace, workspaceId, r.WorkspaceName, r.WorkspaceAvatarUrl).Error; err != nil {
+	if err := dao.UpdateWorkspaceAttributes(&targetWorkspace, workspaceId, r.WorkspaceName, r.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -103,13 +102,18 @@ func DeleteWorkspace(c *gin.Context) {
 	}
 
 	targetWorkspace := model.Workspace{}
-
 	if err := dao.DeleteWorkspace(&targetWorkspace, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "contribution deleted"})
+	targetUsers := model.Users{}
+	if err := dao.DeleteAllUsersInWorkspace(&targetUsers, workspaceId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "workspace deleted"})
 }
 
 func FetchAllWorkSpaces(c *gin.Context) {
@@ -121,18 +125,17 @@ func FetchAllWorkSpaces(c *gin.Context) {
 		return
 	}
 
+	//ここのクエリ文を一つにしたい！！
 	targetUsers := model.Users{}
-
-	if err := dao.FetchAllUsers(&targetUsers, accountId).Error; err != nil {
+	if err := dao.GetAllUsers(&targetUsers, accountId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetWorkspaces := model.Workspaces{}
-
 	for i := 0; i < len(targetUsers); i++ {
 		workspace := model.Workspace{}
-		if err := dao.FetchWorkspaceInfo(&workspace, targetUsers[i].WorkspaceId).Error; err != nil {
+		if err := dao.FindWorkspaceInfo(&workspace, targetUsers[i].WorkspaceId).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

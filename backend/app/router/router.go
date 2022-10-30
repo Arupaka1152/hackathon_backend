@@ -43,13 +43,13 @@ func Router() {
 
 	api.GET("/contribution", controller.FetchAllContributionInWorkspace)
 	api.GET("/contribution/sent", controller.FetchAllContributionSent)
-	api.POST("/contribution/received", controller.FetchAllContributionReceived)
+	api.GET("/contribution/received", controller.FetchAllContributionReceived)
 	api.POST("/contribution", controller.CreateContribution)
 	api.POST("/contribution/reaction", controller.SendReaction)
 	api.PUT("/contribution", controller.EditContribution)
 	api.DELETE("/contribution", controller.DeleteContribution)
 
-	api.POST("/user", controller.ChangeUserAttributes)
+	api.PUT("/user", controller.ChangeUserAttributes)
 	api.DELETE("/user", controller.DeleteUser)
 
 	g.Run(":8080")

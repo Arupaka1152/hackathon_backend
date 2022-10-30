@@ -61,7 +61,7 @@ func Login(c *gin.Context) {
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FetchAccountByEmail(&targetAccount, r.Email).Error; err != nil {
+	if err := dao.FindAccountByEmail(&targetAccount, r.Email).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "account not found"})
 		return
 	}
