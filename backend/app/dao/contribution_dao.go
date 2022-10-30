@@ -6,7 +6,7 @@ import (
 )
 
 func FindContribution(p *model.Contribution, contributionId string) (tx *gorm.DB) {
-	return db.Where("id = ?", contributionId).Find(&p)
+	return db.Where("id = ?", contributionId).First(&p)
 }
 
 func CreateContribution(p *model.Contribution) (tx *gorm.DB) {
