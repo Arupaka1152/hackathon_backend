@@ -95,7 +95,7 @@ func EditContribution(c *gin.Context) {
 	}
 
 	targetContribution := model.Contribution{}
-	if err := dao.EditContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
+	if err := dao.UpdateContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -107,8 +107,13 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
 	targetContributions := model.Contributions{}
-	if err := dao.FetchAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
+	if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "contributions not found"})
 		return
 	}
 
@@ -120,7 +125,7 @@ func FetchAllContributionSent(c *gin.Context) {
 	userId := utils.GetValueFromContext(c, "userId")
 
 	targetContributions := model.Contributions{}
-	if err := dao.FetchAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
+	if err := dao.GetAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -133,7 +138,7 @@ func FetchAllContributionReceived(c *gin.Context) {
 	userId := utils.GetValueFromContext(c, "userId")
 
 	targetContributions := model.Contributions{}
-	if err := dao.FetchAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
+	if err := dao.GetAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -150,14 +155,14 @@ func SendReaction(c *gin.Context) {
 
 	//ここのクエリ文を一つにしたい！！
 	targetContribution := model.Contribution{}
-	if err := dao.FetchContribution(&targetContribution, r.ContributionId).Error; err != nil {
+	if err := dao.FindContribution(&targetContribution, r.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	totalReaction := targetContribution.Reaction + 1
 	newContribution := model.Contribution{}
-	if err := dao.SendReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
+	if err := dao.UpdateReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

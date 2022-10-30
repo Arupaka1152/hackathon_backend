@@ -8,9 +8,13 @@ import (
 
 func UserAuth(workspaceId string, accountId string) (userId string, role string, err error) {
 	targetUser := model.User{}
-	err = dao.FetchUserById(&targetUser, workspaceId, accountId).Error
+	err = dao.FindUserById(&targetUser, workspaceId, accountId).Error
 	if err != nil {
 		return "", "", err
+	}
+
+	if targetUser.Id == "" {
+		return "", "", errors.New("not permitted")
 	}
 
 	userId = targetUser.Id
@@ -20,7 +24,7 @@ func UserAuth(workspaceId string, accountId string) (userId string, role string,
 
 func ContributionAuth(contributionId string, userId string) (err error) {
 	targetContribution := model.Contribution{}
-	if err = dao.FetchContribution(&targetContribution, contributionId).Error; err != nil {
+	if err = dao.FindContribution(&targetContribution, contributionId).Error; err != nil {
 		return err
 	}
 
