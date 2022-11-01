@@ -29,7 +29,7 @@ func init() {
 	//mysqlDatabase := "test_database"
 
 	//dsn := fmt.Sprint("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Asia/Tokyo", mysqlUser, mysqlPwd, mysqlHost, mysqlDatabase)
-	dsn := fmt.Sprintf("%s:%s@%s/%s?charset=utf8mb4&parseTime=true&loc=Asia%2FTokyo", mysqlUser, mysqlPwd, mysqlHost, mysqlDatabase)
+	dsn := fmt.Sprintf("%s:%s@%s/%s?parseTime=true", mysqlUser, mysqlPwd, mysqlHost, mysqlDatabase)
 	//dsn := "root:6xQ}qHkc\"tf}uvLH@tcp(35.224.29.75:3306)/hackathon?charset=utf8mb4&parseTime=True&loc=Asia%2FTokyo"
 
 	//dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", mysqlUser, mysqlPwd, mysqlHost, mysqlDatabase)
