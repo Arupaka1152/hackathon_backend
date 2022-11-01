@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Account struct {
 	Id        string    `json:"id" gorm:"primaryKey"`
@@ -9,5 +11,4 @@ type Account struct {
 	Password  string    `json:"password" gorm:"not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"deleted_at"`
 }

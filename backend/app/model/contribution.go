@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Contribution struct {
 	Id          string    `json:"id" gorm:"primaryKey"`
@@ -13,3 +15,5 @@ type Contribution struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+type Contributions []Contribution
