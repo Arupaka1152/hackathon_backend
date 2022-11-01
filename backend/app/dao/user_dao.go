@@ -34,5 +34,5 @@ func GetAllUsers(u *model.Users, accountId string) (tx *gorm.DB) {
 }
 
 func FindUserById(p *model.User, workspaceId string, accountId string) (tx *gorm.DB) {
-	return db.Where("workspace_id = ? AND account_id = ?", workspaceId, accountId).Find(&p)
+	return db.Where("workspace_id = ? AND account_id = ?", workspaceId, accountId).First(&p)
 }

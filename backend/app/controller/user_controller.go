@@ -90,7 +90,7 @@ func RemoveUserFromWorkspace(c *gin.Context) {
 	userId := utils.GetValueFromContext(c, "userId")
 	role := utils.GetValueFromContext(c, "role")
 
-	if role != "manager" && role != "owner" {
+	if role != "owner" {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 		return
 	}
