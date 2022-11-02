@@ -15,11 +15,13 @@ func AuthMiddleware() gin.HandlerFunc {
 		accountId, err := auth.ParseToken(token)
 		if err != nil {
 			utils.RespondWithError(c, http.StatusUnauthorized, "invalid token")
+			return
 		}
 
 		userId, role, err := auth.UserAuth(workspaceId, accountId)
 		if err != nil {
 			utils.RespondWithError(c, http.StatusForbidden, "not permitted")
+			return
 		}
 
 		c.Set("workspaceId", workspaceId)
