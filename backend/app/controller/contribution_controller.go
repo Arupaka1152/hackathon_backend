@@ -164,13 +164,15 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
-		res[i].Id = targetContributions[i].Id
-		res[i].WorkspaceId = targetContributions[i].WorkspaceId
-		res[i].From = targetContributions[i].From
-		res[i].To = targetContributions[i].To
-		res[i].Points = targetContributions[i].Points
-		res[i].Message = targetContributions[i].Message
-		res[i].Reaction = targetContributions[i].Reaction
+		res = append(res, ContributionRes{
+			targetContributions[i].Id,
+			targetContributions[i].WorkspaceId,
+			targetContributions[i].From,
+			targetContributions[i].To,
+			targetContributions[i].Points,
+			targetContributions[i].Message,
+			targetContributions[i].Reaction,
+		})
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -193,13 +195,15 @@ func FetchAllContributionSent(c *gin.Context) {
 
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
-		res[i].Id = targetContributions[i].Id
-		res[i].WorkspaceId = targetContributions[i].WorkspaceId
-		res[i].From = targetContributions[i].From
-		res[i].To = targetContributions[i].To
-		res[i].Points = targetContributions[i].Points
-		res[i].Message = targetContributions[i].Message
-		res[i].Reaction = targetContributions[i].Reaction
+		res = append(res, ContributionRes{
+			targetContributions[i].Id,
+			targetContributions[i].WorkspaceId,
+			targetContributions[i].From,
+			targetContributions[i].To,
+			targetContributions[i].Points,
+			targetContributions[i].Message,
+			targetContributions[i].Reaction,
+		})
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -222,13 +226,15 @@ func FetchAllContributionReceived(c *gin.Context) {
 
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
-		res[i].Id = targetContributions[i].Id
-		res[i].WorkspaceId = targetContributions[i].WorkspaceId
-		res[i].From = targetContributions[i].From
-		res[i].To = targetContributions[i].To
-		res[i].Points = targetContributions[i].Points
-		res[i].Message = targetContributions[i].Message
-		res[i].Reaction = targetContributions[i].Reaction
+		res = append(res, ContributionRes{
+			targetContributions[i].Id,
+			targetContributions[i].WorkspaceId,
+			targetContributions[i].From,
+			targetContributions[i].To,
+			targetContributions[i].Points,
+			targetContributions[i].Message,
+			targetContributions[i].Reaction,
+		})
 	}
 
 	c.JSON(http.StatusOK, res)
