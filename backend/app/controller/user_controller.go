@@ -114,12 +114,14 @@ func FetchAllUsersInWorkspace(c *gin.Context) {
 
 	res := make(UsersRes, 0)
 	for i := 0; i < len(targetUsers); i++ {
-		res[i].Id = targetUsers[i].Id
-		res[i].Name = targetUsers[i].Name
-		res[i].AccountId = targetUsers[i].AccountId
-		res[i].WorkspaceId = targetUsers[i].WorkspaceId
-		res[i].Role = targetUsers[i].Role
-		res[i].AvatarUrl = targetUsers[i].AvatarUrl
+		res = append(res, UserRes{
+			targetUsers[i].Id,
+			targetUsers[i].Name,
+			targetUsers[i].AccountId,
+			targetUsers[i].WorkspaceId,
+			targetUsers[i].Role,
+			targetUsers[i].AvatarUrl,
+		})
 	}
 
 	c.JSON(http.StatusOK, res)

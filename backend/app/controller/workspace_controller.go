@@ -167,9 +167,11 @@ func FetchAllWorkSpaces(c *gin.Context) {
 
 	res := make(WorkspacesRes, 0)
 	for i := 0; i < len(targetWorkspaces); i++ {
-		res[i].Id = targetWorkspaces[i].Id
-		res[i].Name = targetWorkspaces[i].Name
-		res[i].AvatarUrl = targetWorkspaces[i].AvatarUrl
+		res = append(res, WorkspaceRes{
+			targetWorkspaces[i].Id,
+			targetWorkspaces[i].Name,
+			targetWorkspaces[i].AvatarUrl,
+		})
 	}
 
 	c.JSON(http.StatusOK, res)
