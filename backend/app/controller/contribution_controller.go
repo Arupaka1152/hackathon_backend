@@ -30,9 +30,33 @@ type SendReactionReq struct {
 	ContributionId string `json:"contribution_id" binding:"required"`
 }
 
+type ContributionRes struct {
+	Id          string `json:"contribution_id"`
+	WorkspaceId string `json:"workspace_id"`
+	From        string `json:"sender_id"`
+	To          string `json:"receiver_id"`
+	Points      int    `json:"points"`
+	Message     string `json:"message"`
+	Reaction    int    `json:"reaction"`
+}
+
+type ContributionsRes []ContributionRes
+
+type EditContributionRes struct {
+	Id      string `json:"contribution_id"`
+	To      string `json:"receiver_id"`
+	Points  int    `json:"points"`
+	Message string `json:"message"`
+}
+
+type SendReactionRes struct {
+	Id       string `json:"contribution_id"`
+	Reaction int    `json:"reaction"`
+}
+
 func CreateContribution(c *gin.Context) {
-	r := new(CreateContributionReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(CreateContributionReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -40,14 +64,19 @@ func CreateContribution(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
+	if userId != req.ReceiverId {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant send contribution to yourself"})
+		return
+	}
+
 	contributionId := ulid.Make().String()
 	newContribution := model.Contribution{
 		Id:          contributionId,
 		WorkspaceId: workspaceId,
 		From:        userId,
-		To:          r.ReceiverId,
-		Points:      r.Points,
-		Message:     r.Message,
+		To:          req.ReceiverId,
+		Points:      req.Points,
+		Message:     req.Message,
 		Reaction:    0,
 	}
 
@@ -56,24 +85,34 @@ func CreateContribution(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, newContribution)
+	res := &ContributionRes{
+		newContribution.Id,
+		newContribution.WorkspaceId,
+		newContribution.From,
+		newContribution.To,
+		newContribution.Points,
+		newContribution.Message,
+		newContribution.Reaction,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func DeleteContribution(c *gin.Context) {
-	r := new(DeleteContributionReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(DeleteContributionReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
-	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
+	if err := auth.ContributionAuth(req.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 		return
 	}
 
 	targetContribution := model.Contribution{}
-	if err := dao.DeleteContribution(&targetContribution, r.ContributionId).Error; err != nil {
+	if err := dao.DeleteContribution(&targetContribution, req.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -82,25 +121,32 @@ func DeleteContribution(c *gin.Context) {
 }
 
 func EditContribution(c *gin.Context) {
-	r := new(EditContributionReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(EditContributionReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	userId := utils.GetValueFromContext(c, "userId")
-	if err := auth.ContributionAuth(r.ContributionId, userId); err != nil {
+	if err := auth.ContributionAuth(req.ContributionId, userId); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": "not permitted"})
 		return
 	}
 
 	targetContribution := model.Contribution{}
-	if err := dao.UpdateContribution(&targetContribution, r.ContributionId, r.Points, r.Message).Error; err != nil {
+	if err := dao.UpdateContribution(&targetContribution, req.ContributionId, req.Points, req.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, targetContribution)
+	res := &EditContributionRes{
+		req.ContributionId,
+		targetContribution.To,
+		targetContribution.Points,
+		targetContribution.Message,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func FetchAllContributionInWorkspace(c *gin.Context) {
@@ -113,11 +159,22 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 	}
 
 	if targetContributions[0].Id == "" {
-		c.JSON(http.StatusNotFound, gin.H{"error": "contributions not found"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, targetContributions)
+	res := make(ContributionsRes, 0)
+	for i := 0; i < len(targetContributions); i++ {
+		res[i].Id = targetContributions[i].Id
+		res[i].WorkspaceId = targetContributions[i].WorkspaceId
+		res[i].From = targetContributions[i].From
+		res[i].To = targetContributions[i].To
+		res[i].Points = targetContributions[i].Points
+		res[i].Message = targetContributions[i].Message
+		res[i].Reaction = targetContributions[i].Reaction
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func FetchAllContributionSent(c *gin.Context) {
@@ -130,7 +187,23 @@ func FetchAllContributionSent(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, targetContributions)
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+		return
+	}
+
+	res := make(ContributionsRes, 0)
+	for i := 0; i < len(targetContributions); i++ {
+		res[i].Id = targetContributions[i].Id
+		res[i].WorkspaceId = targetContributions[i].WorkspaceId
+		res[i].From = targetContributions[i].From
+		res[i].To = targetContributions[i].To
+		res[i].Points = targetContributions[i].Points
+		res[i].Message = targetContributions[i].Message
+		res[i].Reaction = targetContributions[i].Reaction
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func FetchAllContributionReceived(c *gin.Context) {
@@ -143,29 +216,49 @@ func FetchAllContributionReceived(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, targetContributions)
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+		return
+	}
+
+	res := make(ContributionsRes, 0)
+	for i := 0; i < len(targetContributions); i++ {
+		res[i].Id = targetContributions[i].Id
+		res[i].WorkspaceId = targetContributions[i].WorkspaceId
+		res[i].From = targetContributions[i].From
+		res[i].To = targetContributions[i].To
+		res[i].Points = targetContributions[i].Points
+		res[i].Message = targetContributions[i].Message
+		res[i].Reaction = targetContributions[i].Reaction
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func SendReaction(c *gin.Context) {
-	r := new(SendReactionReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(SendReactionReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	//ここのクエリ文を一つにしたい！！
 	targetContribution := model.Contribution{}
-	if err := dao.FindContribution(&targetContribution, r.ContributionId).Error; err != nil {
+	if err := dao.FindContribution(&targetContribution, req.ContributionId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	totalReaction := targetContribution.Reaction + 1
 	newContribution := model.Contribution{}
-	if err := dao.UpdateReaction(&newContribution, r.ContributionId, totalReaction).Error; err != nil {
+	if err := dao.UpdateReaction(&newContribution, req.ContributionId, totalReaction).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, newContribution)
+	res := &SendReactionRes{
+		req.ContributionId,
+		newContribution.Reaction,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
