@@ -6,7 +6,6 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"net/http"
 )
 
@@ -69,7 +68,7 @@ func CreateContribution(c *gin.Context) {
 		return
 	}
 
-	contributionId := ulid.Make().String()
+	contributionId := utils.GenerateId()
 	newContribution := model.Contribution{
 		Id:          contributionId,
 		WorkspaceId: workspaceId,

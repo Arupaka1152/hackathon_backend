@@ -5,7 +5,6 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"net/http"
 )
 
@@ -77,7 +76,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	newUserId := ulid.Make().String()
+	newUserId := utils.GenerateId()
 	newUser := model.User{
 		Id:          newUserId,
 		Name:        req.Name,

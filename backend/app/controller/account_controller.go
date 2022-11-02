@@ -4,8 +4,8 @@ import (
 	"backend/app/auth"
 	"backend/app/dao"
 	"backend/app/model"
+	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -31,7 +31,7 @@ func Signup(c *gin.Context) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
 	password := string(hash)
 
-	accountId := ulid.Make().String()
+	accountId := utils.GenerateId()
 	newAccount := model.Account{
 		Id:       accountId,
 		Name:     r.Name,

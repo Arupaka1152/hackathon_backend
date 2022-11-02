@@ -6,7 +6,6 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"net/http"
 )
 
@@ -45,7 +44,7 @@ func CreateWorkspace(c *gin.Context) {
 		return
 	}
 
-	workspaceId := ulid.Make().String()
+	workspaceId := utils.GenerateId()
 	newWorkspace := model.Workspace{
 		Id:        workspaceId,
 		Name:      req.WorkspaceName,
@@ -57,7 +56,7 @@ func CreateWorkspace(c *gin.Context) {
 		return
 	}
 
-	userId := ulid.Make().String()
+	userId := utils.GenerateId()
 	newUser := model.User{
 		Id:          userId,
 		Name:        req.UserName,
