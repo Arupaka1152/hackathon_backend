@@ -6,7 +6,6 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"net/http"
 )
 
@@ -22,6 +21,14 @@ type ChangeWorkspaceAttributesReq struct {
 	WorkspaceAvatarUrl string `json:"workspace_avatar_url"`
 }
 
+type WorkspaceRes struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	AvatarUrl string `json:"avatar_url"`
+}
+
+type WorkspacesRes []WorkspaceRes
+
 func CreateWorkspace(c *gin.Context) {
 	token := c.Request.Header.Get("authentication")
 
@@ -31,17 +38,17 @@ func CreateWorkspace(c *gin.Context) {
 		return
 	}
 
-	r := new(CreateWorkspaceReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(CreateWorkspaceReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	workspaceId := ulid.Make().String()
+	workspaceId := utils.GenerateId()
 	newWorkspace := model.Workspace{
 		Id:        workspaceId,
-		Name:      r.WorkspaceName,
-		AvatarUrl: r.WorkspaceAvatarUrl,
+		Name:      req.WorkspaceName,
+		AvatarUrl: req.WorkspaceAvatarUrl,
 	}
 
 	if err := dao.CreateWorkspace(&newWorkspace).Error; err != nil {
@@ -49,14 +56,14 @@ func CreateWorkspace(c *gin.Context) {
 		return
 	}
 
-	userId := ulid.Make().String()
+	userId := utils.GenerateId()
 	newUser := model.User{
 		Id:          userId,
-		Name:        r.UserName,
+		Name:        req.UserName,
 		AccountId:   accountId,
 		WorkspaceId: workspaceId,
 		Role:        "owner",
-		AvatarUrl:   r.UserAvatarUrl,
+		AvatarUrl:   req.UserAvatarUrl,
 	}
 
 	if err := dao.CreateUser(&newUser).Error; err != nil {
@@ -64,8 +71,13 @@ func CreateWorkspace(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, newWorkspace)
-	//この後はワークスペース選択画面にリダイレクトor選択画面へのリンクを貼るor作ったワークスペースへリダイレクト
+	res := &WorkspaceRes{
+		workspaceId,
+		newWorkspace.Name,
+		newWorkspace.AvatarUrl,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func ChangeWorkspaceAttributes(c *gin.Context) {
@@ -77,19 +89,25 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 		return
 	}
 
-	r := new(ChangeWorkspaceAttributesReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(ChangeWorkspaceAttributesReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetWorkspace := model.Workspace{}
-	if err := dao.UpdateWorkspaceAttributes(&targetWorkspace, workspaceId, r.WorkspaceName, r.WorkspaceAvatarUrl).Error; err != nil {
+	if err := dao.UpdateWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, targetWorkspace)
+	res := &WorkspaceRes{
+		workspaceId,
+		targetWorkspace.Name,
+		targetWorkspace.AvatarUrl,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func DeleteWorkspace(c *gin.Context) {
@@ -132,6 +150,11 @@ func FetchAllWorkSpaces(c *gin.Context) {
 		return
 	}
 
+	if targetUsers[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "users not found"})
+		return
+	}
+
 	targetWorkspaces := model.Workspaces{}
 	for i := 0; i < len(targetUsers); i++ {
 		workspace := model.Workspace{}
@@ -142,5 +165,14 @@ func FetchAllWorkSpaces(c *gin.Context) {
 		targetWorkspaces = append(targetWorkspaces, workspace)
 	}
 
-	c.JSON(http.StatusOK, targetWorkspaces)
+	res := make(WorkspacesRes, 0)
+	for i := 0; i < len(targetWorkspaces); i++ {
+		res = append(res, WorkspaceRes{
+			targetWorkspaces[i].Id,
+			targetWorkspaces[i].Name,
+			targetWorkspaces[i].AvatarUrl,
+		})
+	}
+
+	c.JSON(http.StatusOK, res)
 }

@@ -5,7 +5,6 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"net/http"
 )
 
@@ -30,6 +29,27 @@ type RemoveUserFromWorkspaceReq struct {
 	UserId string `json:"user_id" binding:"required"`
 }
 
+type UserRes struct {
+	Id          string `json:"user_id"`
+	Name        string `json:"name"`
+	AccountId   string `json:"account_id"`
+	WorkspaceId string `json:"workspace_id"`
+	Role        string `json:"role"`
+	AvatarUrl   string `json:"avatar_url"`
+}
+
+type UsersRes []UserRes
+
+type GrantRoleToUserRes struct {
+	Id   string `json:"user_id"`
+	Role string `json:"role"`
+}
+
+type ChangeUserAttributesRes struct {
+	Name      string `json:"name"`
+	AvatarUrl string `json:"avatar_url"`
+}
+
 func CreateUser(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	role := utils.GetValueFromContext(c, "role")
@@ -39,14 +59,14 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	r := new(CreateUserReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(CreateUserReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FindAccountByEmail(&targetAccount, r.Email).Error; err != nil {
+	if err := dao.FindAccountByEmail(&targetAccount, req.Email).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -56,14 +76,14 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	newUserId := ulid.Make().String()
+	newUserId := utils.GenerateId()
 	newUser := model.User{
 		Id:          newUserId,
-		Name:        r.Name,
+		Name:        req.Name,
 		AccountId:   targetAccount.Id,
 		WorkspaceId: workspaceId,
-		Role:        r.Role,
-		AvatarUrl:   r.AvatarUrl,
+		Role:        req.Role,
+		AvatarUrl:   req.AvatarUrl,
 	}
 
 	if err := dao.CreateUser(&newUser).Error; err != nil {
@@ -71,7 +91,16 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, newUser)
+	res := &UserRes{
+		newUser.Id,
+		newUser.Name,
+		newUser.AccountId,
+		newUser.WorkspaceId,
+		newUser.Role,
+		newUser.AvatarUrl,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func FetchAllUsersInWorkspace(c *gin.Context) {
@@ -83,7 +112,19 @@ func FetchAllUsersInWorkspace(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, targetUsers)
+	res := make(UsersRes, 0)
+	for i := 0; i < len(targetUsers); i++ {
+		res = append(res, UserRes{
+			targetUsers[i].Id,
+			targetUsers[i].Name,
+			targetUsers[i].AccountId,
+			targetUsers[i].WorkspaceId,
+			targetUsers[i].Role,
+			targetUsers[i].AvatarUrl,
+		})
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func RemoveUserFromWorkspace(c *gin.Context) {
@@ -95,19 +136,19 @@ func RemoveUserFromWorkspace(c *gin.Context) {
 		return
 	}
 
-	r := new(RemoveUserFromWorkspaceReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(RemoveUserFromWorkspaceReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if userId == r.UserId {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant delete yourself"})
+	if userId == req.UserId {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant remove yourself"})
 		return
 	}
 
 	targetUser := model.User{}
-	if err := dao.DeleteUser(&targetUser, r.UserId).Error; err != nil {
+	if err := dao.DeleteUser(&targetUser, req.UserId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -142,45 +183,55 @@ func GrantRoleToUser(c *gin.Context) {
 		return
 	}
 
-	r := new(GrantRoleToUserReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(GrantRoleToUserReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if r.Role != "manager" && r.Role != "general" {
+	if req.Role != "manager" && req.Role != "general" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "choose manager or general"})
 		return
 	}
 
-	if userId == r.UserId {
+	if userId == req.UserId {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant change your role"})
 		return
 	}
 
 	targetUser := model.User{}
-	if err := dao.UpdateRoleOfUser(&targetUser, r.UserId, r.Role).Error; err != nil {
+	if err := dao.UpdateRoleOfUser(&targetUser, req.UserId, req.Role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, targetUser)
+	res := &GrantRoleToUserRes{
+		req.UserId,
+		targetUser.Role,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func ChangeUserAttributes(c *gin.Context) {
 	userId := utils.GetValueFromContext(c, "userId")
 
-	r := new(ChangeUserAttributesReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(ChangeUserAttributesReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetUser := model.User{}
-	if err := dao.UpdateUserAttributes(&targetUser, userId, r.UserName, r.UserAvatarUrl).Error; err != nil {
+	if err := dao.UpdateUserAttributes(&targetUser, userId, req.UserName, req.UserAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, targetUser)
+	res := &ChangeUserAttributesRes{
+		targetUser.Name,
+		targetUser.AvatarUrl,
+	}
+
+	c.JSON(http.StatusOK, res)
 }
