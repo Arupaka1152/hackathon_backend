@@ -20,6 +20,14 @@ func Router() {
 			"PUT",
 			"DELETE",
 		},
+		AllowHeaders: []string{
+			"Access-Control-Allow-Headers",
+			"Content-Type",
+			"Content-Length",
+			"Accept-Encoding",
+			"X-CSRF-Token",
+			"Authorization",
+		},
 	}
 	g.Use(cors.New(corsConfig))
 
