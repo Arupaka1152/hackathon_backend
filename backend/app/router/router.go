@@ -27,6 +27,8 @@ func Router() {
 			"Accept-Encoding",
 			"X-CSRF-Token",
 			"Authorization",
+			"authentication",
+			"workspace_id",
 		},
 	}
 	g.Use(cors.New(corsConfig))
