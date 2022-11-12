@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"unicode/utf8"
 )
 
 type SignupReq struct {
@@ -22,20 +23,25 @@ type LoginReq struct {
 }
 
 func Signup(c *gin.Context) {
-	r := new(SignupReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(SignupReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
+	if utf8.RuneCountInString(req.Password) < 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "length of password must be more than 9"})
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	password := string(hash)
 
 	accountId := utils.GenerateId()
 	newAccount := model.Account{
 		Id:       accountId,
-		Name:     r.Name,
-		Email:    r.Email,
+		Name:     req.Name,
+		Email:    req.Email,
 		Password: password,
 	}
 
@@ -54,19 +60,19 @@ func Signup(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	r := new(LoginReq)
-	if err := c.Bind(&r); err != nil {
+	req := new(LoginReq)
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	targetAccount := model.Account{}
-	if err := dao.FindAccountByEmail(&targetAccount, r.Email).Error; err != nil {
+	if err := dao.FindAccountByEmail(&targetAccount, req.Email).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "account not found"})
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(targetAccount.Password), []byte(r.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(targetAccount.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid password"})
 		return
 	}
