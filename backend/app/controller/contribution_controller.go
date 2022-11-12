@@ -68,6 +68,11 @@ func CreateContribution(c *gin.Context) {
 		return
 	}
 
+	if req.Points > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant send more than 100 points"})
+		return
+	}
+
 	contributionId := utils.GenerateId()
 	newContribution := model.Contribution{
 		Id:          contributionId,
@@ -132,6 +137,11 @@ func EditContribution(c *gin.Context) {
 		return
 	}
 
+	if req.Points > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant send more than 100 points"})
+		return
+	}
+
 	targetContribution := model.Contribution{}
 	if err := dao.UpdateContribution(&targetContribution, req.ContributionId, req.Points, req.Message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -151,15 +161,31 @@ func EditContribution(c *gin.Context) {
 func FetchAllContributionInWorkspace(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
-	targetContributions := model.Contributions{}
-	if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	startDate := c.Param("startDate")
+	endDate := c.Param("endDate")
 
-	if targetContributions[0].Id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-		return
+	targetContributions := model.Contributions{}
+
+	if startDate != "" && endDate != "" {
+		if err := dao.GetDesignatedContributionInWorkspace(&targetContributions, workspaceId, startDate, endDate).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
+	} else {
+		if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
 	}
 
 	res := make(ContributionsRes, 0)
@@ -182,15 +208,31 @@ func FetchAllContributionSent(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
-	targetContributions := model.Contributions{}
-	if err := dao.GetAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	startDate := c.Param("startDate")
+	endDate := c.Param("endDate")
 
-	if targetContributions[0].Id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-		return
+	targetContributions := model.Contributions{}
+
+	if startDate != "" && endDate != "" {
+		if err := dao.GetDesignatedContributionSent(&targetContributions, workspaceId, userId, startDate, endDate).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
+	} else {
+		if err := dao.GetAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
 	}
 
 	res := make(ContributionsRes, 0)
@@ -213,15 +255,31 @@ func FetchAllContributionReceived(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
-	targetContributions := model.Contributions{}
-	if err := dao.GetAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	startDate := c.Param("startDate")
+	endDate := c.Param("endDate")
 
-	if targetContributions[0].Id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-		return
+	targetContributions := model.Contributions{}
+
+	if startDate != "" && endDate != "" {
+		if err := dao.GetDesignatedContributionReceived(&targetContributions, workspaceId, userId, startDate, endDate).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
+	} else {
+		if err := dao.GetAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if targetContributions[0].Id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+			return
+		}
 	}
 
 	res := make(ContributionsRes, 0)

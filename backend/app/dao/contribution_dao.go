@@ -25,12 +25,24 @@ func GetAllContributionInWorkspace(u *model.Contributions, workspaceId string) (
 	return db.Where("workspace_id = ?", workspaceId).Find(&u)
 }
 
+func GetDesignatedContributionInWorkspace(u *model.Contributions, workspaceId string, startDate string, endDate string) (tx *gorm.DB) {
+	return db.Where("workspace_id = ?", workspaceId).Where("created_at BETWEEN ? AND ?", startDate, endDate).Find(&u)
+}
+
 func GetAllContributionSent(u *model.Contributions, workspaceId string, from string) (tx *gorm.DB) {
 	return db.Where(model.Contribution{WorkspaceId: workspaceId, From: from}).Find(&u)
 }
 
+func GetDesignatedContributionSent(u *model.Contributions, workspaceId string, from string, startDate string, endDate string) (tx *gorm.DB) {
+	return db.Where(model.Contribution{WorkspaceId: workspaceId, From: from}).Where("created_at BETWEEN ? AND ?", startDate, endDate).Find(&u)
+}
+
 func GetAllContributionReceived(u *model.Contributions, workspaceId string, to string) (tx *gorm.DB) {
 	return db.Where(model.Contribution{WorkspaceId: workspaceId, To: to}).Find(&u)
+}
+
+func GetDesignatedContributionReceived(u *model.Contributions, workspaceId string, to string, startDate string, endDate string) (tx *gorm.DB) {
+	return db.Where(model.Contribution{WorkspaceId: workspaceId, To: to}).Where("created_at BETWEEN ? AND ?", startDate, endDate).Find(&u)
 }
 
 func UpdateReaction(p *model.Contribution, contributionId string, reactions int) (tx *gorm.DB) {
