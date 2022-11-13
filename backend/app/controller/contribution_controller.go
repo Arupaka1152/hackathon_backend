@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+const layout = "2006-01-02 15:04:05"
+
 type CreateContributionReq struct {
 	ReceiverId string `json:"receiver_id" binding:"required"`
 	Points     int    `json:"points" binding:"required"`
@@ -37,6 +39,8 @@ type ContributionRes struct {
 	Points      int    `json:"points"`
 	Message     string `json:"message"`
 	Reaction    int    `json:"reaction"`
+	CreatedAt   string `json:"created_at"`
+	UpdateAt    string `json:"update_at"`
 }
 
 type ContributionsRes []ContributionRes
@@ -97,6 +101,8 @@ func CreateContribution(c *gin.Context) {
 		newContribution.Points,
 		newContribution.Message,
 		newContribution.Reaction,
+		newContribution.CreatedAt.Format(layout),
+		newContribution.UpdatedAt.Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -198,6 +204,8 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
+			targetContributions[i].CreatedAt.Format(layout),
+			targetContributions[i].UpdatedAt.Format(layout),
 		})
 	}
 
@@ -245,6 +253,8 @@ func FetchAllContributionSent(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
+			targetContributions[i].CreatedAt.Format(layout),
+			targetContributions[i].UpdatedAt.Format(layout),
 		})
 	}
 
@@ -292,6 +302,8 @@ func FetchAllContributionReceived(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
+			targetContributions[i].CreatedAt.Format(layout),
+			targetContributions[i].UpdatedAt.Format(layout),
 		})
 	}
 

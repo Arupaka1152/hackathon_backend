@@ -59,6 +59,7 @@ func Router() {
 	api.PUT("/contribution", controller.EditContribution)
 	api.DELETE("/contribution", controller.DeleteContribution)
 
+	api.GET("/me", controller.FetchUserInfo)
 	api.PUT("/user", controller.ChangeUserAttributes)
 	api.DELETE("/user", controller.DeleteUser)
 
