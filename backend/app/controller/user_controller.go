@@ -50,6 +50,27 @@ type ChangeUserAttributesRes struct {
 	AvatarUrl string `json:"avatar_url"`
 }
 
+func FetchUserInfo(c *gin.Context) {
+	userId := utils.GetValueFromContext(c, "userId")
+
+	targetUser := model.User{}
+	if err := dao.FindUserByUserId(&targetUser, userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	res := &UserRes{
+		targetUser.Id,
+		targetUser.Name,
+		targetUser.AccountId,
+		targetUser.WorkspaceId,
+		targetUser.Role,
+		targetUser.AvatarUrl,
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
 func CreateUser(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	role := utils.GetValueFromContext(c, "role")
