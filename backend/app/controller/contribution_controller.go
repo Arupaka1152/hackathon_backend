@@ -67,7 +67,7 @@ func CreateContribution(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
-	if userId != req.ReceiverId {
+	if userId == req.ReceiverId {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant send contribution to yourself"})
 		return
 	}
