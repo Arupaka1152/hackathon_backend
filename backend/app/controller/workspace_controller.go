@@ -18,13 +18,15 @@ type CreateWorkspaceReq struct {
 
 type ChangeWorkspaceAttributesReq struct {
 	WorkspaceName      string `json:"workspace_name" binding:"required"`
+	Description        string `json:"description"`
 	WorkspaceAvatarUrl string `json:"workspace_avatar_url"`
 }
 
 type WorkspaceRes struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	AvatarUrl string `json:"avatar_url"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	AvatarUrl   string `json:"avatar_url"`
 }
 
 type WorkspacesRes []WorkspaceRes
@@ -74,6 +76,7 @@ func CreateWorkspace(c *gin.Context) {
 	res := &WorkspaceRes{
 		workspaceId,
 		newWorkspace.Name,
+		newWorkspace.Description,
 		newWorkspace.AvatarUrl,
 	}
 
@@ -96,7 +99,7 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 	}
 
 	targetWorkspace := model.Workspace{}
-	if err := dao.UpdateWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.WorkspaceAvatarUrl).Error; err != nil {
+	if err := dao.UpdateWorkspaceAttributes(&targetWorkspace, workspaceId, req.WorkspaceName, req.Description, req.WorkspaceAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -104,6 +107,7 @@ func ChangeWorkspaceAttributes(c *gin.Context) {
 	res := &WorkspaceRes{
 		workspaceId,
 		targetWorkspace.Name,
+		targetWorkspace.Description,
 		targetWorkspace.AvatarUrl,
 	}
 
@@ -170,6 +174,7 @@ func FetchAllWorkSpaces(c *gin.Context) {
 		res = append(res, WorkspaceRes{
 			targetWorkspaces[i].Id,
 			targetWorkspaces[i].Name,
+			targetWorkspaces[i].Description,
 			targetWorkspaces[i].AvatarUrl,
 		})
 	}

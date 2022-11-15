@@ -22,6 +22,7 @@ type GrantRoleToUserReq struct {
 
 type ChangeUserAttributesReq struct {
 	UserName      string `json:"user_name" binding:"required"`
+	Description   string `json:"description"`
 	UserAvatarUrl string `json:"user_avatar_url"`
 }
 
@@ -35,6 +36,7 @@ type UserRes struct {
 	AccountId   string `json:"account_id"`
 	WorkspaceId string `json:"workspace_id"`
 	Role        string `json:"role"`
+	Description string `json:"description"`
 	AvatarUrl   string `json:"avatar_url"`
 }
 
@@ -46,19 +48,22 @@ type GrantRoleToUserRes struct {
 }
 
 type ChangeUserAttributesRes struct {
-	Name      string `json:"name"`
-	AvatarUrl string `json:"avatar_url"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	AvatarUrl   string `json:"avatar_url"`
 }
 
 type UserInfoRes struct {
-	Id                 string `json:"user_id"`
-	Name               string `json:"name"`
-	AccountId          string `json:"account_id"`
-	WorkspaceId        string `json:"workspace_id"`
-	Role               string `json:"role"`
-	AvatarUrl          string `json:"avatar_url"`
-	WorkspaceName      string `json:"workspace_name"`
-	WorkspaceAvatarUrl string `json:"workspace_avatar_url"`
+	Id                   string `json:"user_id"`
+	Name                 string `json:"name"`
+	AccountId            string `json:"account_id"`
+	WorkspaceId          string `json:"workspace_id"`
+	Role                 string `json:"role"`
+	Description          string `json:"description"`
+	AvatarUrl            string `json:"avatar_url"`
+	WorkspaceName        string `json:"workspace_name"`
+	WorkspaceDescription string `json:"workspace_description"`
+	WorkspaceAvatarUrl   string `json:"workspace_avatar_url"`
 }
 
 func FetchUserInfo(c *gin.Context) {
@@ -82,8 +87,10 @@ func FetchUserInfo(c *gin.Context) {
 		targetUser.AccountId,
 		targetUser.WorkspaceId,
 		targetUser.Role,
+		targetUser.Description,
 		targetUser.AvatarUrl,
 		targetWorkspace.Name,
+		targetWorkspace.Description,
 		targetWorkspace.AvatarUrl,
 	}
 
@@ -137,6 +144,7 @@ func CreateUser(c *gin.Context) {
 		newUser.AccountId,
 		newUser.WorkspaceId,
 		newUser.Role,
+		newUser.Description,
 		newUser.AvatarUrl,
 	}
 
@@ -160,6 +168,7 @@ func FetchAllUsersInWorkspace(c *gin.Context) {
 			targetUsers[i].AccountId,
 			targetUsers[i].WorkspaceId,
 			targetUsers[i].Role,
+			targetUsers[i].Description,
 			targetUsers[i].AvatarUrl,
 		})
 	}
@@ -263,13 +272,14 @@ func ChangeUserAttributes(c *gin.Context) {
 	}
 
 	targetUser := model.User{}
-	if err := dao.UpdateUserAttributes(&targetUser, userId, req.UserName, req.UserAvatarUrl).Error; err != nil {
+	if err := dao.UpdateUserAttributes(&targetUser, userId, req.UserName, req.Description, req.UserAvatarUrl).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	res := &ChangeUserAttributesRes{
 		targetUser.Name,
+		targetUser.Description,
 		targetUser.AvatarUrl,
 	}
 

@@ -11,6 +11,7 @@ type User struct {
 	AccountId   string         `json:"account_id" gorm:"not null"`
 	WorkspaceId string         `json:"workspace_id" gorm:"not null"`
 	Role        string         `json:"role" gorm:"not null"`
+	Description string         `json:"description"`
 	AvatarUrl   string         `json:"avatar_url"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
