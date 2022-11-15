@@ -25,8 +25,8 @@ func UpdateRoleOfUser(p *model.User, userId string, role string) (tx *gorm.DB) {
 	return db.Model(&p).Where("id = ?", userId).Update("role", role)
 }
 
-func UpdateUserAttributes(p *model.User, userId string, userName string, avatarUrl string) (tx *gorm.DB) {
-	return db.Model(&p).Where("id = ?", userId).Updates(model.User{Name: userName, AvatarUrl: avatarUrl})
+func UpdateUserAttributes(p *model.User, userId string, userName string, description string, avatarUrl string) (tx *gorm.DB) {
+	return db.Model(&p).Where("id = ?", userId).Updates(model.User{Name: userName, Description: description, AvatarUrl: avatarUrl})
 }
 
 func GetAllUsers(u *model.Users, accountId string) (tx *gorm.DB) {
