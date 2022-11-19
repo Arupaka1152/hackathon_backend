@@ -46,15 +46,17 @@ type ContributionRes struct {
 type ContributionsRes []ContributionRes
 
 type EditContributionRes struct {
-	Id      string `json:"contribution_id"`
-	To      string `json:"receiver_id"`
-	Points  int    `json:"points"`
-	Message string `json:"message"`
+	Id       string `json:"contribution_id"`
+	To       string `json:"receiver_id"`
+	Points   int    `json:"points"`
+	Message  string `json:"message"`
+	UpdateAt string `json:"update_at"`
 }
 
 type SendReactionRes struct {
 	Id       string `json:"contribution_id"`
 	Reaction int    `json:"reaction"`
+	UpdateAt string `json:"update_at"`
 }
 
 func CreateContribution(c *gin.Context) {
@@ -72,7 +74,7 @@ func CreateContribution(c *gin.Context) {
 		return
 	}
 
-	if req.Points > 100 {
+	if req.Points < 1 && req.Points > 100 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "you cant send more than 100 points"})
 		return
 	}
@@ -159,6 +161,7 @@ func EditContribution(c *gin.Context) {
 		targetContribution.To,
 		targetContribution.Points,
 		targetContribution.Message,
+		targetContribution.UpdatedAt.Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -333,6 +336,7 @@ func SendReaction(c *gin.Context) {
 	res := &SendReactionRes{
 		req.ContributionId,
 		newContribution.Reaction,
+		targetContribution.UpdatedAt.Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
