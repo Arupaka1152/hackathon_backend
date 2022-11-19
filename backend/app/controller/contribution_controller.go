@@ -7,6 +7,7 @@ import (
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 const layout = "2006-01-02 15:04:05"
@@ -95,6 +96,8 @@ func CreateContribution(c *gin.Context) {
 		return
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := &ContributionRes{
 		newContribution.Id,
 		newContribution.WorkspaceId,
@@ -103,8 +106,8 @@ func CreateContribution(c *gin.Context) {
 		newContribution.Points,
 		newContribution.Message,
 		newContribution.Reaction,
-		newContribution.CreatedAt.Format(layout),
-		newContribution.UpdatedAt.Format(layout),
+		newContribution.CreatedAt.In(jst).Format(layout),
+		newContribution.UpdatedAt.In(jst).Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -156,12 +159,14 @@ func EditContribution(c *gin.Context) {
 		return
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := &EditContributionRes{
 		req.ContributionId,
 		targetContribution.To,
 		targetContribution.Points,
 		targetContribution.Message,
-		targetContribution.UpdatedAt.Format(layout),
+		targetContribution.UpdatedAt.In(jst).Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -197,6 +202,8 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 		}
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
 		res = append(res, ContributionRes{
@@ -207,8 +214,8 @@ func FetchAllContributionInWorkspace(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
-			targetContributions[i].CreatedAt.Format(layout),
-			targetContributions[i].UpdatedAt.Format(layout),
+			targetContributions[i].CreatedAt.In(jst).Format(layout),
+			targetContributions[i].UpdatedAt.In(jst).Format(layout),
 		})
 	}
 
@@ -246,6 +253,8 @@ func FetchAllContributionSent(c *gin.Context) {
 		}
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
 		res = append(res, ContributionRes{
@@ -256,8 +265,8 @@ func FetchAllContributionSent(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
-			targetContributions[i].CreatedAt.Format(layout),
-			targetContributions[i].UpdatedAt.Format(layout),
+			targetContributions[i].CreatedAt.In(jst).Format(layout),
+			targetContributions[i].UpdatedAt.In(jst).Format(layout),
 		})
 	}
 
@@ -295,6 +304,8 @@ func FetchAllContributionReceived(c *gin.Context) {
 		}
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := make(ContributionsRes, 0)
 	for i := 0; i < len(targetContributions); i++ {
 		res = append(res, ContributionRes{
@@ -305,8 +316,8 @@ func FetchAllContributionReceived(c *gin.Context) {
 			targetContributions[i].Points,
 			targetContributions[i].Message,
 			targetContributions[i].Reaction,
-			targetContributions[i].CreatedAt.Format(layout),
-			targetContributions[i].UpdatedAt.Format(layout),
+			targetContributions[i].CreatedAt.In(jst).Format(layout),
+			targetContributions[i].UpdatedAt.In(jst).Format(layout),
 		})
 	}
 
@@ -333,10 +344,12 @@ func SendReaction(c *gin.Context) {
 		return
 	}
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
 	res := &SendReactionRes{
 		req.ContributionId,
 		newContribution.Reaction,
-		targetContribution.UpdatedAt.Format(layout),
+		targetContribution.UpdatedAt.In(jst).Format(layout),
 	}
 
 	c.JSON(http.StatusOK, res)
