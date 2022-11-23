@@ -60,6 +60,52 @@ type SendReactionRes struct {
 	UpdateAt string `json:"update_at"`
 }
 
+type ContributionReport struct {
+	UserId   string `json:"user_id"`
+	Name     string `json:"name"`
+	Points   int    `json:"points"`
+	Reaction int    `json:"reaction"`
+}
+
+type ContributionReportRes []ContributionReport
+
+func FetchContributionReport(c *gin.Context) {
+	workspaceId := utils.GetValueFromContext(c, "workspaceId")
+
+	targetContributions := model.Contributions{}
+	if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetUsers := model.Users{}
+	if err := dao.GetAllUsersInWorkspace(&targetUsers, workspaceId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	res := make(ContributionReportRes, 0)
+
+	for i := 0; i < len(targetUsers); i++ {
+		points := 0
+		reaction := 0
+		for j := 0; j < len(targetContributions); j++ {
+			if targetUsers[i].Id == targetContributions[j].To {
+				points += targetContributions[j].Points
+				reaction += targetContributions[j].Reaction
+			}
+		}
+		res = append(res, ContributionReport{
+			targetUsers[i].Id,
+			targetUsers[i].Name,
+			points,
+			reaction,
+		})
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
 func CreateContribution(c *gin.Context) {
 	req := new(CreateContributionReq)
 	if err := c.Bind(&req); err != nil {
@@ -175,31 +221,15 @@ func EditContribution(c *gin.Context) {
 func FetchAllContributionInWorkspace(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
-	startDate := c.Param("startDate")
-	endDate := c.Param("endDate")
-
 	targetContributions := model.Contributions{}
+	if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	if startDate != "" && endDate != "" {
-		if err := dao.GetDesignatedContributionInWorkspace(&targetContributions, workspaceId, startDate, endDate).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
-	} else {
-		if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+		return
 	}
 
 	jst := time.FixedZone("Asia/Tokyo", 9*60*60)

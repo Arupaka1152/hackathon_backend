@@ -25,10 +25,6 @@ func GetAllContributionInWorkspace(u *model.Contributions, workspaceId string) (
 	return db.Where("workspace_id = ?", workspaceId).Find(&u)
 }
 
-func GetDesignatedContributionInWorkspace(u *model.Contributions, workspaceId string, startDate string, endDate string) (tx *gorm.DB) {
-	return db.Where("workspace_id = ?", workspaceId).Where("created_at BETWEEN ? AND ?", startDate, endDate).Find(&u)
-}
-
 func GetAllContributionSent(u *model.Contributions, workspaceId string, from string) (tx *gorm.DB) {
 	return db.Where(model.Contribution{WorkspaceId: workspaceId, From: from}).Find(&u)
 }

@@ -54,6 +54,7 @@ func Router() {
 	api.GET("/contribution", controller.FetchAllContributionInWorkspace)
 	api.GET("/contribution/sent", controller.FetchAllContributionSent)
 	api.GET("/contribution/received", controller.FetchAllContributionReceived)
+	api.GET("/contribution/report", controller.FetchContributionReport)
 	api.POST("/contribution", controller.CreateContribution)
 	api.POST("/contribution/reaction", controller.SendReaction)
 	api.PUT("/contribution", controller.EditContribution)
