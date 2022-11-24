@@ -61,10 +61,12 @@ type SendReactionRes struct {
 }
 
 type ContributionReport struct {
-	UserId   string `json:"user_id"`
-	Name     string `json:"name"`
-	Points   int    `json:"points"`
-	Reaction int    `json:"reaction"`
+	UserId           string `json:"user_id"`
+	Name             string `json:"name"`
+	PointsSent       int    `json:"points_sent"`
+	ReactionSent     int    `json:"reaction_sent"`
+	PointsReceived   int    `json:"points_received"`
+	ReactionReceived int    `json:"reaction_received"`
 }
 
 type ContributionReportRes []ContributionReport
@@ -72,8 +74,11 @@ type ContributionReportRes []ContributionReport
 func FetchContributionReport(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 
+	endDate := time.Now()
+	startDate := endDate.Add(-7 * 24 * time.Hour)
+
 	targetContributions := model.Contributions{}
-	if err := dao.GetAllContributionInWorkspace(&targetContributions, workspaceId).Error; err != nil {
+	if err := dao.GetDesignatedContributionInWorkspace(&targetContributions, workspaceId, startDate, endDate).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -87,19 +92,28 @@ func FetchContributionReport(c *gin.Context) {
 	res := make(ContributionReportRes, 0)
 
 	for i := 0; i < len(targetUsers); i++ {
-		points := 0
-		reaction := 0
+		pointsSent := 0
+		reactionSent := 0
+		pointsReceived := 0
+		reactionReceived := 0
 		for j := 0; j < len(targetContributions); j++ {
+			if targetUsers[i].Id == targetContributions[j].From {
+				pointsSent += targetContributions[j].Points
+				reactionSent += targetContributions[j].Reaction
+			}
+
 			if targetUsers[i].Id == targetContributions[j].To {
-				points += targetContributions[j].Points
-				reaction += targetContributions[j].Reaction
+				pointsReceived += targetContributions[j].Points
+				reactionReceived += targetContributions[j].Reaction
 			}
 		}
 		res = append(res, ContributionReport{
 			targetUsers[i].Id,
 			targetUsers[i].Name,
-			points,
-			reaction,
+			pointsSent,
+			reactionSent,
+			pointsReceived,
+			reactionReceived,
 		})
 	}
 
@@ -256,31 +270,15 @@ func FetchAllContributionSent(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
-	startDate := c.Param("startDate")
-	endDate := c.Param("endDate")
-
 	targetContributions := model.Contributions{}
+	if err := dao.GetAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	if startDate != "" && endDate != "" {
-		if err := dao.GetDesignatedContributionSent(&targetContributions, workspaceId, userId, startDate, endDate).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
-	} else {
-		if err := dao.GetAllContributionSent(&targetContributions, workspaceId, userId).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+		return
 	}
 
 	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
@@ -307,31 +305,15 @@ func FetchAllContributionReceived(c *gin.Context) {
 	workspaceId := utils.GetValueFromContext(c, "workspaceId")
 	userId := utils.GetValueFromContext(c, "userId")
 
-	startDate := c.Param("startDate")
-	endDate := c.Param("endDate")
-
 	targetContributions := model.Contributions{}
+	if err := dao.GetAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	if startDate != "" && endDate != "" {
-		if err := dao.GetDesignatedContributionReceived(&targetContributions, workspaceId, userId, startDate, endDate).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
-	} else {
-		if err := dao.GetAllContributionReceived(&targetContributions, workspaceId, userId).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if targetContributions[0].Id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
-			return
-		}
+	if targetContributions[0].Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "contributions not found"})
+		return
 	}
 
 	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
