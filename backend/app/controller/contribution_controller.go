@@ -61,12 +61,14 @@ type SendReactionRes struct {
 }
 
 type ContributionReport struct {
-	UserId           string `json:"user_id"`
-	Name             string `json:"name"`
-	PointsSent       int    `json:"points_sent"`
-	ReactionSent     int    `json:"reaction_sent"`
-	PointsReceived   int    `json:"points_received"`
-	ReactionReceived int    `json:"reaction_received"`
+	UserId               string `json:"user_id"`
+	Name                 string `json:"name"`
+	ContributionSent     int    `json:"contribution_sent"`
+	PointsSent           int    `json:"points_sent"`
+	ReactionSent         int    `json:"reaction_sent"`
+	ContributionReceived int    `json:"contribution_received"`
+	PointsReceived       int    `json:"points_received"`
+	ReactionReceived     int    `json:"reaction_received"`
 }
 
 type ContributionReportRes []ContributionReport
@@ -92,17 +94,21 @@ func FetchContributionReport(c *gin.Context) {
 	res := make(ContributionReportRes, 0)
 
 	for i := 0; i < len(targetUsers); i++ {
+		contributionSent := 0
 		pointsSent := 0
 		reactionSent := 0
+		contributionReceived := 0
 		pointsReceived := 0
 		reactionReceived := 0
 		for j := 0; j < len(targetContributions); j++ {
 			if targetUsers[i].Id == targetContributions[j].From {
+				contributionSent++
 				pointsSent += targetContributions[j].Points
 				reactionSent += targetContributions[j].Reaction
 			}
 
 			if targetUsers[i].Id == targetContributions[j].To {
+				contributionReceived++
 				pointsReceived += targetContributions[j].Points
 				reactionReceived += targetContributions[j].Reaction
 			}
@@ -110,8 +116,10 @@ func FetchContributionReport(c *gin.Context) {
 		res = append(res, ContributionReport{
 			targetUsers[i].Id,
 			targetUsers[i].Name,
+			contributionSent,
 			pointsSent,
 			reactionSent,
+			contributionReceived,
 			pointsReceived,
 			reactionReceived,
 		})
