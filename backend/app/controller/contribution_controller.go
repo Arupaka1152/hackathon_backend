@@ -63,6 +63,7 @@ type SendReactionRes struct {
 type ContributionReport struct {
 	UserId               string `json:"user_id"`
 	Name                 string `json:"name"`
+	AvatarUrl            string `json:"avatar_url"`
 	ContributionSent     int    `json:"contribution_sent"`
 	PointsSent           int    `json:"points_sent"`
 	ReactionSent         int    `json:"reaction_sent"`
@@ -116,6 +117,7 @@ func FetchContributionReport(c *gin.Context) {
 		res = append(res, ContributionReport{
 			targetUsers[i].Id,
 			targetUsers[i].Name,
+			targetUsers[i].AvatarUrl,
 			contributionSent,
 			pointsSent,
 			reactionSent,
