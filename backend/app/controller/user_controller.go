@@ -117,9 +117,18 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	if targetAccount.Id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "account not found"})
+		return
+	}
+
+	targetUser := model.User{}
+	if err := dao.FindUserById(&targetUser, workspaceId, targetAccount.Id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if targetUser.Id != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "user already exists"})
 		return
 	}
 
