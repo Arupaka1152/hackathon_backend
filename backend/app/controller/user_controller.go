@@ -5,6 +5,7 @@ import (
 	"backend/app/model"
 	"backend/app/utils"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -122,13 +123,18 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	targetUser := model.User{}
-	if err := dao.FindUserById(&targetUser, workspaceId, targetAccount.Id).Error; err != nil {
+	targetUser := model.User{
+		Id: "",
+	}
+	err := dao.FindUserById(&targetUser, workspaceId, targetAccount.Id).Error
+
+	if err != gorm.ErrRecordNotFound {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	if targetUser.Id != "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "user already exists"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
 		return
 	}
 
